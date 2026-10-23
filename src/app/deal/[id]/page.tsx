@@ -8,8 +8,8 @@ import type { Deal, Meeting } from "@/lib/model";
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const deal = getDeal(id);
-  if (!deal) return { title: "Deal room — Minutes" };
-  return { title: `${deal.client} — deal room · Minutes` };
+  if (!deal) return { title: "Deal room" };
+  return { title: `${deal.client} — deal room` };
 }
 
 // The deal room is request-time rendered like the rest of the app — one
