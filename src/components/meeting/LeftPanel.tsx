@@ -6,8 +6,9 @@ import { MEETING_TEMPLATES } from "@/lib/templates";
 import { fmtDate } from "@/lib/time";
 import { useState } from "react";
 import { ShareModal } from "./ShareModal";
+import { ClipsPanel } from "./ClipsPanel";
 
-type TabId = "summary" | "actions" | "moments" | "email";
+type TabId = "summary" | "actions" | "clips" | "moments" | "email";
 
 export function LeftPanel({
   meeting,
@@ -19,6 +20,7 @@ export function LeftPanel({
   const tabOrder: { id: TabId; label: string; count?: number }[] = [
     { id: "summary", label: "Summary" },
     { id: "actions", label: "Action items", count: meeting.actionItems.length },
+    { id: "clips", label: "Clips", count: meeting.highlights.length },
     { id: "moments", label: "Moments", count: meeting.highlights.length },
     { id: "email", label: "Follow-up" },
   ];
@@ -53,6 +55,7 @@ export function LeftPanel({
       <div className="pane p-5" role="tabpanel" aria-label={tab}>
         {tab === "summary" && <SummaryPanel meeting={meeting} player={player} />}
         {tab === "actions" && <ActionItems meeting={meeting} player={player} />}
+        {tab === "clips" && <ClipsPanel meeting={meeting} />}
         {tab === "moments" && <HighlightsPanel meeting={meeting} player={player} />}
         {tab === "email" && <EmailPanel meeting={meeting} />}
       </div>
