@@ -14,6 +14,8 @@ const at = (sub: string) => {
   if (!u) throw new Error(`no utterance matching: ${sub}`);
   return u.t;
 };
+/** cited cross-seed too — the deal room quotes this call from deal.ts */
+export const salesAt = at;
 
 // Discovery call with a mid-market prospect. Deliberately rendered in two
 // templates to show template switching on a sales-shaped call.

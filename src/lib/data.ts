@@ -1,8 +1,17 @@
-import type { Meeting, Utterance } from "@/lib/model";
-import { MEETINGS, UPCOMING } from "@/lib/seed";
+import type { Deal, Meeting, Utterance } from "@/lib/model";
+import { MEETINGS, UPCOMING, DEALS } from "@/lib/seed";
 
 export function getMeeting(id: string): Meeting | undefined {
   return MEETINGS.find((m) => m.id === id);
+}
+
+export function getDeal(id: string): Deal | undefined {
+  return DEALS.find((d) => d.id === id);
+}
+
+/** the deal room a meeting belongs to, if its client has one */
+export function dealForMeeting(meetingId: string): Deal | undefined {
+  return DEALS.find((d) => d.meetingIds.includes(meetingId));
 }
 
 export function allMeetings(): Meeting[] {

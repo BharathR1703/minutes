@@ -36,6 +36,12 @@ export function TopBar() {
             >
               Search
             </Link>
+            <Link
+              href="/deal/ridgeline-foods"
+              className="hidden text-ink-soft hover:text-ink sm:block"
+            >
+              Deal room
+            </Link>
             <SearchForm />
             <Link
               href="/settings"

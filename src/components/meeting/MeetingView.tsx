@@ -1,12 +1,14 @@
 "use client";
 
 import type { Meeting } from "@/lib/model";
+import { dealForMeeting } from "@/lib/data";
 import { usePlayer } from "@/lib/player";
 import { Player } from "./Player";
 import { TranscriptPane } from "./TranscriptPane";
 import { LeftPanel } from "./LeftPanel";
 import { ChatPanel } from "./ChatPanel";
 import { fmtDate, fmtTime, hms } from "@/lib/time";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 export function MeetingView({ meeting, initialTime }: { meeting: Meeting; initialTime: number }) {
@@ -49,6 +51,7 @@ export function MeetingView({ meeting, initialTime }: { meeting: Meeting; initia
   }
 
   const others = meeting.speakers.filter((s) => !s.self);
+  const deal = dealForMeeting(meeting.id);
 
   return (
     <div className="mx-auto max-w-6xl px-4 pb-16 pt-8 sm:px-6">
@@ -74,6 +77,15 @@ export function MeetingView({ meeting, initialTime }: { meeting: Meeting; initia
             >
               {meeting.captureMode === "bot" ? "bot recorded" : "bot-free capture"}
             </span>
+            {deal && (
+              <Link
+                href={`/deal/${deal.id}`}
+                className="rounded-full bg-record-soft px-2 py-0.5 text-[11.5px] font-medium text-record hover:bg-record hover:text-paper"
+                title="This call is one of the calls in this deal's room"
+              >
+                Deal room · {deal.client}
+              </Link>
+            )}
           </div>
           <div className="mt-2 flex items-center gap-1.5 text-[13px] text-ink-soft">
             <span className="inline-flex -space-x-1.5" aria-hidden>

@@ -2,6 +2,12 @@ import type { Meeting, Summary } from "@/lib/model";
 import { roadmapMeeting } from "./roadmap";
 import { soloMeeting } from "./solo";
 import { salesMeeting, spicedSummary, salesStandardSummary } from "./sales";
+import {
+  checkinMeeting,
+  checkinSpiced,
+  checkinStandard,
+  DEALS,
+} from "./deal";
 import { interviewMeeting } from "./interview";
 import { oneOnOneMeeting, retroMeeting, churnMeeting, upcomingCalendar } from "./team";
 import { builder } from "./builder";
@@ -274,6 +280,10 @@ const meetings: Meeting[] = (
       ...salesMeeting,
       summaries: { spiced: spicedSummary, standard: salesStandardSummary },
     },
+    {
+      ...checkinMeeting,
+      summaries: { spiced: checkinSpiced, standard: checkinStandard },
+    },
     { ...interviewMeeting, summaries: { interview: interviewSummary } },
     { ...oneOnOneMeeting, summaries: { "one-on-one": oneOnOneSummary } },
     { ...retroMeeting, summaries: { retro: retroSummary } },
@@ -289,3 +299,4 @@ export const MEETINGS: Meeting[] = meetings.sort(
 );
 
 export const UPCOMING = upcomingCalendar;
+export { DEALS };

@@ -68,6 +68,32 @@ export type Meeting = {
   /** available templates come from summaries' keys, ordered by templates order */
 };
 
+/** One place where a deal's calls were mentioned or quoted. */
+export type RiskCite = { meetingId: string; t: number };
+
+/** The deal room's risk tracker: signals tallied across every call in the deal. */
+export type DealRisk = {
+  id: string;
+  label: string;
+  severity: "risk" | "watch";
+  note: string;
+  cites: RiskCite[]; // the count is cites.length — nothing is asserted twice
+};
+
+/** A deal aggregates many meetings under one client. */
+export type Deal = {
+  id: string;
+  client: string;
+  stage: string;
+  value: string;
+  champion: string;
+  closeTarget: string;
+  brief: string; // written from what the calls actually established
+  nextStep: string;
+  risks: DealRisk[];
+  meetingIds: string[]; // newest first
+};
+
 /** Events Minutes has read off the calendar but not recorded (yet). */
 export type Upcoming = {
   id: string;
