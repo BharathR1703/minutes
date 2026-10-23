@@ -1,26 +1,112 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --paper: #f6f5f2;
+  --paper-raised: #fffefc;
+  --ink: #1b1e24;
+  --ink-soft: #56595f;
+  --ink-faint: #8e9095;
+  --line: #e3e0d8;
+  --line-soft: #edeadf;
+  --record: #d2452e;
+  --record-soft: #fbf0ec;
+  --ok: #2d6a4f;
+  --ok-soft: #eef5f1;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-paper: var(--paper);
+  --color-raised: var(--paper-raised);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+  --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
+  --color-record: var(--record);
+  --color-record-soft: var(--record-soft);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --font-sans: var(--font-ui);
+  --font-serif: var(--font-display);
+  --font-mono: var(--font-time);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  font-family: var(--font-ui), system-ui, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+/* hairline-focused components (no card kit: panes, rules, whitespace) */
+.rule {
+  border-bottom: 1px solid var(--line);
+}
+.pane {
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+:focus-visible {
+  outline: 2px solid var(--record);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+::selection {
+  background: #f3d9d2;
+}
+
+/* transcript scrubbing list */
+.transcript-utterance[data-active="true"] {
+  background: var(--record-soft);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .playhead {
+    transition: none;
+  }
+  @keyframes pulse-rec {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.45;
+    }
+  }
+  .rec-dot {
+    animation: pulse-rec 2.2s ease-in-out infinite;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rec-dot {
+    animation: none;
+  }
+}
+
+/* thin scrollbars inside panes */
+.scrollpane {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+.scrollpane::-webkit-scrollbar {
+  width: 8px;
+}
+.scrollpane::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 8px;
 }
