@@ -1,0 +1,2 @@
+{"type":"user","message":{"role":"user","content":"hi"},"timestamp":"2026-10-23T18:00:00Z"}
+{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Hello! Capture works."}]},"timestamp":"2026-10-23T18:00:05Z","sessionId":"test-123"}
