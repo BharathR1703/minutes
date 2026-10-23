@@ -30,7 +30,17 @@ a badge on every row. (The capture layer itself is stubbed in this build — see
 Retro…) switch per call *after* the fact, and the same citations carry over. Template
 switching is one select away, not a workspace setting.
 
-**5. What was cut, deliberately.**
+**5. The deal room is a record, not a pipeline widget.** `/deal/[id]` stitches every call
+with one client into a single page: a deal brief written from what the calls established, a
+risk tracker whose counts are literally the playable citations beneath them (the incumbent
+vendor "mentioned 3×" is three chips, each one a moment in the check-in), and commitments
+unified across calls in due-date order.
+
+**6. Agentic follow-through asks, never sends.** Any action item can be dispatched: the
+assistant drafts an email or a Jira ticket out of what was actually said (verbatim commitment
+quote and its citation included), and nothing happens without Approve — the build says so.
+
+**7. What was cut, deliberately.**
 - No "conversation intelligence" dashboards (talk-time percentages, sentiment curves) — nobody
   ever changed their next meeting because of one.
 - No paywalled Ask — retrieval is exact-word matching here, honest about its limits, and the
@@ -42,9 +52,13 @@ switching is one select away, not a workspace setting.
 - **Real:** transcript↔playback sync (rAF clock, seek, speed, `?t=` deep links, auto-scroll
   with user-scroll suppression), per-call summary templates, action items, highlights, clip
   sharing to people who were never on the call (`/share/[meetingId]?h=`), cross-meeting
-  search, the speaking graph.
+  search, the speaking graph, the deal room (`/deal/ridgeline-foods`) with its citation-backed
+  risk tracker, the "chat with the call" retrieval that answers only in quotes, and the
+  dispatch draft→approve→toast flow.
 - **Stubbed:** the capture layer — nothing joins Zoom or records system audio. The seed data
   represents what capture would produce, and the UI says so plainly (see the walkthrough).
+- The **AI is mocked**: chat answers, generated clips, and dispatch drafts are retrieval +
+  hand-woven text streamed token-by-token — no model call, the code says so in its footnote.
 - The **audio you hear** in playback is a synthesized voice bed (per-speaker pitch), labeled
   as such in the transport — there is no real recording to stream.
 
