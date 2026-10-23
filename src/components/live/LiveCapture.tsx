@@ -191,7 +191,7 @@ export function LiveCapture({ event, meeting }: { event: Upcoming; meeting: Meet
             </span>
           </div>
           <div className="pane mt-4 p-5">
-            <p className="eyebrow mb-2">Minutes wrote — {meeting.title.split("—")[0].trim()}</p>
+            <p className="eyebrow mb-2">Minutes wrote, as the call ended</p>
             <p className="font-[family-name:var(--font-display)] text-xl leading-snug">
               {summary.gist}
             </p>

@@ -2,7 +2,7 @@ import { getMeeting } from "@/lib/data";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { ClipPlayer } from "@/components/share/ClipPlayer";
-import { fmtDate, mmss } from "@/lib/time";
+import { fmtDate } from "@/lib/time";
 
 export async function generateMetadata({
   params,
@@ -37,16 +37,8 @@ export default async function SharePage({
   const hl = meeting.highlights.find((x) => x.id === highlightId);
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
-      <header className="mb-8 flex items-baseline justify-between">
-        <p className="flex items-baseline gap-1 text-lg">
-          <span className="font-[family-name:var(--font-display)] font-semibold tracking-tight">
-            Minutes
-          </span>
-          <span className="rec-dot size-1.5 translate-y-[-2px] rounded-full bg-record" aria-hidden />
-        </p>
-        <p className="text-[13px] text-ink-soft">A clip was shared with you</p>
-      </header>
+    <div className="mx-auto max-w-2xl px-4 pb-16 pt-10 sm:px-6">
+      <p className="mb-8 text-right text-[13px] text-ink-soft">A clip was shared with you</p>
 
       {hl ? (
         <article>
@@ -60,30 +52,6 @@ export default async function SharePage({
           <div className="mt-6">
             <ClipPlayer meeting={meeting} start={hl.at} length={30} />
           </div>
-          <section className="mt-6" aria-label="Words said in this clip">
-            <h2 className="eyebrow mb-2">What was said here</h2>
-            <ul className="space-y-2">
-              {meeting.transcript
-                .filter((u) => u.t + u.dur > hl.at - 2 && u.t < hl.at + 32)
-                .map((u, i) => {
-                  const sp = meeting.speakers.find((s) => s.id === u.speaker);
-                  return (
-                    <li key={i} className="flex gap-2.5 text-[14px] leading-relaxed">
-                      <span className="mt-px shrink-0 font-mono text-[11px] text-ink-faint tabular-nums">
-                        {mmss(u.t)}
-                      </span>
-                      <p>
-                        <span className="font-semibold" style={{ color: sp?.color }}>
-                          {sp?.name}
-                        </span>
-                        <span className="mx-1.5 text-line">|</span>
-                        <span className="text-ink-soft">{u.text}</span>
-                      </p>
-                    </li>
-                  );
-                })}
-            </ul>
-          </section>
           <p className="mt-8 rounded-lg border border-line-soft bg-raised px-4 py-3 text-[13px] leading-relaxed text-ink-soft">
             This clip is all you can see — the rest of the meeting stays with{" "}
             {meeting.speakers.filter((s) => s.self).at(0)?.name ?? "the host"}

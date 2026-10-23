@@ -60,7 +60,7 @@ export function TranscriptPane({
       <div className="flex items-center gap-2 border-b border-line px-4 py-2.5">
         <h2 className="eyebrow">Transcript</h2>
         <span className="font-mono text-[11px] text-ink-faint tabular-nums">
-          {meeting.transcript.length} turns
+          {range ? `${visible.length} turns in clip` : `${meeting.transcript.length} turns`}
         </span>
         <input
           value={inThis}
@@ -139,7 +139,9 @@ export function TranscriptPane({
           )}
         </ul>
         <div className="px-4 py-3 text-center text-xs text-ink-faint">
-          End of transcript · {hms(meeting.duration)} recorded
+          {range
+            ? `End of clip · ${mmss(Math.min(range.length, meeting.duration - range.start))} shared`
+            : `End of transcript · ${hms(meeting.duration)} recorded`}
         </div>
       </div>
     </section>
