@@ -133,7 +133,12 @@ function UpcomingSection({ upcoming }: { upcoming: Upcoming[] }) {
               className="rec-dot size-2 rounded-full bg-record opacity-60"
             />
             <div className="min-w-0 flex-1">
-              <span className="font-medium text-[15px]">{u.title}</span>
+              <Link
+                href={`/live/${u.id}`}
+                className="font-medium text-[15px] hover:text-record hover:underline underline-offset-2"
+              >
+                {u.title}
+              </Link>
               <span className="ml-2 text-[13px] text-ink-soft">
                 {u.platform} · {fmtDate(u.startedAt)} {fmtTime(u.startedAt)}
               </span>
@@ -163,7 +168,7 @@ function UpcomingSection({ upcoming }: { upcoming: Upcoming[] }) {
         ))}
       </ul>
       <p className="mt-2 text-[13px] text-ink-faint">
-        Three events pulled off your calendar automatically.{" "}
+        Pulled off your calendar automatically — click a call to preview its capture.{" "}
         <Link href="/settings" className="underline underline-offset-2 hover:text-ink">
           Change how Minutes joins
         </Link>

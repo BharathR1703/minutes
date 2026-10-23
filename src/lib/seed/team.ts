@@ -255,18 +255,18 @@ export const upcomingCalendar = [
   },
   {
     id: "up-2",
-    title: "1:1 — Priya",
+    title: "1:1 — Maya",
     platform: "Microsoft Teams" as const,
     startedAt: "2026-10-23T14:00:00Z",
-    attendees: ["You", "Priya"],
+    attendees: ["You", "Maya"],
     captureMode: "bot-free" as const,
   },
   {
     id: "up-3",
-    title: "Design crit — activation flow",
+    title: "Sprint 24 retro",
     platform: "Google Meet" as const,
     startedAt: "2026-10-24T10:30:00Z",
-    attendees: ["You", "Maya", "Sam", "Chloe"],
-    captureMode: "bot-free" as const,
+    attendees: ["You", "Priya", "Sam", "Jonas"],
+    captureMode: "bot" as const,
   },
 ];
