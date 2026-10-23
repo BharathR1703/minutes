@@ -7,6 +7,7 @@ import { fmtDate } from "@/lib/time";
 import { useState } from "react";
 import { ShareModal } from "./ShareModal";
 import { ClipsPanel } from "./ClipsPanel";
+import { DispatchModal } from "./DispatchModal";
 
 type TabId = "summary" | "actions" | "clips" | "moments" | "email";
 
@@ -125,6 +126,14 @@ function SummaryPanel({ meeting, player }: { meeting: Meeting; player: ReturnTyp
 // ── Action items ─────────────────────────────────────────────────────────────
 function ActionItems({ meeting, player }: { meeting: Meeting; player: ReturnType<typeof usePlayer> }) {
   const [done, setDone] = useState<Record<string, boolean>>({});
+  const [dispatching, setDispatching] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+
+  function approveDispatch(a: (typeof meeting.actionItems)[number]) {
+    setDispatching(null);
+    setToast(`Dispatched to ${a.ownerName} — Minutes will nudge if the due date slips.`);
+    setTimeout(() => setToast(null), 4200);
+  }
 
   function byOwner() {
     const map = new Map<string, typeof meeting.actionItems>();
@@ -186,6 +195,13 @@ function ActionItems({ meeting, player }: { meeting: Meeting; player: ReturnType
                         </button>
                       </p>
                     </div>
+                    <button
+                      onClick={() => setDispatching(a.id)}
+                      className="mt-0.5 shrink-0 rounded-full border border-line bg-raised px-2.5 py-1 text-[11.5px] font-medium text-ink-soft hover:border-record hover:text-record"
+                      aria-label={`Dispatch: ${a.text}`}
+                    >
+                      Dispatch ⚡
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -193,6 +209,24 @@ function ActionItems({ meeting, player }: { meeting: Meeting; player: ReturnType
           );
         })}
       </div>
+      {dispatching && (
+        <DispatchModal
+          meeting={meeting}
+          action={meeting.actionItems.find((a) => a.id === dispatching)!}
+          onClose={() => setDispatching(null)}
+          onApproved={() =>
+            approveDispatch(meeting.actionItems.find((a) => a.id === dispatching)!)
+          }
+        />
+      )}
+      {toast && (
+        <div
+          role="status"
+          className="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 rounded-full bg-ink px-5 py-2.5 text-[13.5px] font-medium text-paper shadow-lg"
+        >
+          ⚡ {toast}
+        </div>
+      )}
     </div>
   );
 }
