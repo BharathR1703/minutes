@@ -6,9 +6,8 @@ import { MEETING_TEMPLATES } from "@/lib/templates";
 import { fmtDate } from "@/lib/time";
 import { useState } from "react";
 import { ShareModal } from "./ShareModal";
-import { AskPanel } from "./AskPanel";
 
-type TabId = "summary" | "actions" | "moments" | "email" | "ask";
+type TabId = "summary" | "actions" | "moments" | "email";
 
 export function LeftPanel({
   meeting,
@@ -22,7 +21,6 @@ export function LeftPanel({
     { id: "actions", label: "Action items", count: meeting.actionItems.length },
     { id: "moments", label: "Moments", count: meeting.highlights.length },
     { id: "email", label: "Follow-up" },
-    { id: "ask", label: "Ask this call" },
   ];
   const [tab, setTab] = useState<TabId>("summary");
 
@@ -57,7 +55,6 @@ export function LeftPanel({
         {tab === "actions" && <ActionItems meeting={meeting} player={player} />}
         {tab === "moments" && <HighlightsPanel meeting={meeting} player={player} />}
         {tab === "email" && <EmailPanel meeting={meeting} />}
-        {tab === "ask" && <AskPanel meeting={meeting} player={player} />}
       </div>
     </div>
   );
