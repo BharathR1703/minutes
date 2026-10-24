@@ -1,20 +1,29 @@
 "use client";
 
-import { composeMeeting, demoEventUpcoming, loadDemoStore, recordBooking } from "@/lib/demo";
+import { composeMeeting, demoEventUpcoming, loadDemoStore, recordBooking, speakersOf } from "@/lib/demo";
 import { LiveCapture } from "@/components/live/LiveCapture";
+import { OwnCapture } from "@/components/demo/OwnCapture";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 /**
  * Capture simulation for a call booked in this browser — the booking's spec
- * lives in localStorage, so the armed screen composes the meeting client-side
- * and records it when the simulated call ends.
+ * lives in localStorage. Scripted calls replay their walkthrough; "your own"
+ * calls hand control to the scribe composer (OwnCapture). Both record the
+ * meeting when the simulated call ends.
  */
 export function LocalLiveCapture({ id }: { id: string }) {
   const [state, setState] = useState<"loading" | "found" | "missing">("loading");
+  const [ev, setEv] = useState<ReturnType<typeof loadDemoStore>["events"][number] | null>(null);
 
   useEffect(() => {
-    setState(loadDemoStore().events.some((e) => e.id === id) ? "found" : "missing");
+    const found = loadDemoStore().events.find((e) => e.id === id);
+    if (found) {
+      setEv(found);
+      setState("found");
+    } else {
+      setState("missing");
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
@@ -39,9 +48,17 @@ export function LocalLiveCapture({ id }: { id: string }) {
       </div>
     );
 
-  if (state !== "found") return null;
+  if (state !== "found" || !ev) return null;
 
-  const ev = loadDemoStore().events.find((e) => e.id === id)!;
+  if (ev.spec.script === "blank")
+    return (
+      <OwnCapture
+        booking={ev}
+        speakers={speakersOf(ev.spec)}
+        onDone={(feeds) => recordBooking(ev.id, feeds)}
+      />
+    );
+
   return (
     <LiveCapture
       event={demoEventUpcoming(ev)}

@@ -1,6 +1,6 @@
 "use client";
 
-import { clearDemo, demoEventUpcoming, loadDemoStore } from "@/lib/demo";
+import { clearDemo, demoEventUpcoming, downloadIcs, loadDemoStore } from "@/lib/demo";
 import { fmtDate, fmtTime, hms } from "@/lib/time";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -38,12 +38,39 @@ export function DemoArmedSection() {
                   {e.spec.title}
                 </Link>
                 <span className="ml-2 text-[13px] text-ink-soft">
+                  {u.attendees.length > 1 && (
+                    <span
+                      title={u.attendees.slice(1).join(", ")}
+                      className="mr-1 inline-flex -space-x-1.5 align-middle"
+                      aria-hidden
+                    >
+                      {u.attendees.slice(1, 5).map((_, i) => (
+                        <span key={i} className="inline-block size-2.5 rounded-full ring-2 ring-raised" style={{ background: "#c4c0b4" }} />
+                      ))}
+                    </span>
+                  )}
                   {e.spec.platform} · {fmtDate(u.startedAt)} {fmtTime(u.startedAt)}
+                  {e.spec.attendees.some((a) => a.email) && (
+                    <span
+                      title={e.spec.attendees.filter((a) => a.email).map((a) => `${a.name}: ${a.email}`).join("\n")}
+                      className="ml-1.5 text-ink-faint"
+                    >
+                      · {e.spec.attendees.filter((a) => a.email).length} email
+                      {e.spec.attendees.filter((a) => a.email).length === 1 ? "" : "s"}
+                    </span>
+                  )}
                 </span>
               </div>
+              <button
+                onClick={() => downloadIcs(e)}
+                className="shrink-0 rounded-full border border-line px-2.5 py-1 text-[11.5px] font-medium text-ink-soft hover:border-ink-soft hover:text-ink"
+                title="Download this booking as a .ics with the attendees' emails — add it to your real calendar"
+              >
+                .ics
+              </button>
               <span
                 className={
-                  "rounded-full px-2.5 py-1 text-xs font-medium " +
+                  "shrink-0 rounded-full px-2.5 py-1 text-xs font-medium " +
                   (e.spec.captureMode === "bot" ? "bg-line-soft text-ink-soft" : "bg-ok-soft text-ok")
                 }
               >

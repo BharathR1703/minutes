@@ -1,12 +1,16 @@
 import type { Meeting, Upcoming } from "@/lib/model";
+import { extractArtifacts } from "@/lib/extract";
 
-// ── Booked demo meetings ─────────────────────────────────────────────────────
+// ── Booked meetings ──────────────────────────────────────────────────────────
 // The app has no database, so calls a person books here live in their browser
-// (localStorage), under `minutes.demo.v1`. The seed data stays untouched;
-// demo sections below the seeded ones are labeled "booked in this browser".
-// Everything a seed meeting has — transcript, summary, actions, highlights —
-// is composed from a walkthrough script so the whole product is testable on
-// the booked call: playback, chat, clips, dispatch, sharing.
+// (localStorage, `minutes.demo.v2`). The seed data stays untouched; booked
+// sections below the seeded ones are labeled "booked in this browser".
+//
+// Two ways to book:
+// - a walkthrough script (guided; the capture produces that script's content),
+// - "your own call" (`script: "blank"`) — no script. What's said is fed to the
+//   scribe live (`feeds`) and Minutes extracts summary, actions, highlights
+//   from that, citing each line the way it does on any call.
 
 export type ScriptId = "discovery" | "standup" | "oneOnOne" | "interview";
 
@@ -18,13 +22,16 @@ export const SCRIPTS: { id: ScriptId; name: string; blurb: string }[] = [
 ];
 
 /** What was filled in on the booking form. */
+export type Attendee = { name: string; email?: string };
+export type FeedLine = { sp: number | "self"; text: string }; // your own call, in order
+
 export type DemoSpec = {
-  script: ScriptId;
+  script: ScriptId | "blank"; // "blank" = your own call, fed to the scribe live
   title: string;
   platform: Upcoming["platform"];
   startedAt: string; // ISO, chosen on the form
   captureMode: Upcoming["captureMode"];
-  attendees: string[]; // non-self names, first is the lead
+  attendees: Attendee[]; // non-self, first is the lead
 };
 
 /** One booked call: the form spec plus whether capture has been run. */
@@ -32,21 +39,37 @@ export type DemoEvent = {
   id: string; // "demo-<booking timestamp>"
   spec: DemoSpec;
   status: "armed" | "recorded";
+  feeds: FeedLine[]; // what a "blank" call was fed; empty for scripted calls
 };
 
 export type DemoStore = { events: DemoEvent[]; meetings: Meeting[] };
 
-const KEY = "minutes.demo.v1";
+const KEY = "minutes.demo.v2";
+const KEY_V1 = "minutes.demo.v1";
 
 const EMPTY: DemoStore = { events: [], meetings: [] };
+
+function normalizeEvent(e: DemoEvent): DemoEvent {
+  // v1 stored spec.attendees as plain strings
+  const attendees =
+    Array.isArray(e.spec?.attendees)
+      ? e.spec.attendees.map((a: string | Attendee) =>
+          typeof a === "string" ? { name: a } : a
+        )
+      : [];
+  return { ...e, feeds: e.feeds ?? [], spec: { ...e.spec, attendees } };
+}
 
 export function loadDemoStore(): DemoStore {
   if (typeof window === "undefined") return EMPTY;
   try {
-    const raw = window.localStorage.getItem(KEY);
+    const raw = window.localStorage.getItem(KEY) ?? window.localStorage.getItem(KEY_V1);
     if (!raw) return EMPTY;
     const parsed = JSON.parse(raw) as DemoStore;
-    return { events: parsed.events ?? [], meetings: parsed.meetings ?? [] };
+    return {
+      events: (parsed.events ?? []).map(normalizeEvent),
+      meetings: parsed.meetings ?? [],
+    };
   } catch {
     return EMPTY;
   }
@@ -67,19 +90,23 @@ export function bookMeeting(spec: DemoSpec): DemoEvent {
     id: `demo-${Date.now().toString(36)}`,
     spec,
     status: "armed",
+    feeds: [],
   };
   saveDemoStore({ ...store, events: [...store.events, ev] });
   return ev;
 }
 
-/** When the simulated capture ends: the call is now a real meeting. */
-export function recordBooking(id: string): Meeting | undefined {
+/** When the capture ends: the call is now a real meeting. */
+export function recordBooking(id: string, feeds?: FeedLine[]): Meeting | undefined {
   const store = loadDemoStore();
   const ev = store.events.find((e) => e.id === id);
   if (!ev || ev.status === "recorded") return store.meetings.find((m) => m.id === id);
-  const meeting = composeMeeting(ev.spec, ev.id);
+  const lineFeed = feeds ?? ev.feeds;
+  const meeting = composeMeeting(ev.spec, ev.id, lineFeed);
   const updated: DemoStore = {
-    events: store.events.map((e) => (e.id === id ? { ...e, status: "recorded" as const } : e)),
+    events: store.events.map((e) =>
+      e.id === id ? { ...e, status: "recorded" as const, feeds: lineFeed } : e
+    ),
     meetings: [...store.meetings, meeting],
   };
   return saveDemoStore(updated) ? meeting : undefined;
@@ -274,30 +301,94 @@ const SCRIPTS_BODY: Record<ScriptId, { lines: Line[]; draft: Draft }> = {
   },
 };
 
-/**
- * Compose a full meeting from a booked spec: script lines get the attendee
- * names woven in, every artifact cites its line by substring anchor, so chat,
- * clips, dispatch and search all behave exactly as on seeded calls.
- */
-export function composeMeeting(spec: DemoSpec, id: string): Meeting {
-  const script = SCRIPTS_BODY[spec.script];
-  const attendees = spec.attendees.filter((n) => n.trim());
-  const speakers = [
+/** The speaker list for a booking: You first, then the named attendees. */
+export function speakersOf(spec: DemoSpec): Meeting["speakers"] {
+  return [
     { id: "you", name: "You", color: "#0E7C86", self: true },
-    ...attendees.map((att, i) => ({
-      id: `g${i}`,
-      name: att.includes("(") ? att : att,
-      color: GUEST_COLORS[i % GUEST_COLORS.length],
-    })),
+    ...spec.attendees
+      .filter((a) => a.name.trim())
+      .map((att, i) => ({
+        id: `g${i}`,
+        name: att.name.trim(),
+        color: GUEST_COLORS[i % GUEST_COLORS.length],
+      })),
   ];
+}
+
+/**
+ * Compose a full meeting from a booked spec: scripted calls weave attendee
+ * names into their lines with cite-by-substring anchors; blank calls build the
+ * transcript from the fed lines and extract every artifact from that. Chat,
+ * clips, dispatch and search behave exactly as on seeded calls either way.
+ */
+export function composeMeeting(spec: DemoSpec, id: string, feeds: FeedLine[] = []): Meeting {
+  const attendeeNames = spec.attendees.map((a) => a.name.trim()).filter(Boolean);
+  const speakers = speakersOf(spec);
   // a script line meant for a missing attendee falls to the first guest
   const resolve = (sp: number | "self") =>
-    sp === "self" ? "you" : `g${Math.min(sp, Math.max(0, attendees.length - 1))}`;
+    sp === "self" ? "you" : `g${Math.min(sp, Math.max(0, attendeeNames.length - 1))}`;
+
+  if (spec.script === "blank") {
+    // your own call: the transcript is the feed, artifacts are extracted
+    let t = 0;
+    const transcript = feeds
+      .filter((l) => l.text.trim())
+      .map((l) => {
+        const speaker = resolve(l.sp);
+        const words = l.text.trim().split(/\s+/).length;
+        const dur = Math.max(1.6, Math.round((words / 2.6) * 10) / 10);
+        const u = { t: Math.round(t), dur, speaker, text: l.text.trim() };
+        t += dur + 0.9;
+        return u;
+      });
+    const end = Math.round(t);
+    const nameOf = (sid: string) => speakers.find((s) => s.id === sid)?.name ?? sid;
+    const artifacts = extractArtifacts(transcript, { idPrefix: id, nameOf });
+    const email = [
+      "Hi all —",
+      ...(spec.attendees.some((a) => a.email)
+        ? ["", `To: ${spec.attendees.filter((a) => a.email).map((a) => a.email).join(", ")}`]
+        : []),
+      "",
+      `Quick recap of ${spec.title.toLowerCase()} from ${new Date(spec.startedAt).toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}:`,
+      "",
+      artifacts.summary.gist,
+      "",
+      ...(artifacts.actionItems.length
+        ? [
+            "Action items:",
+            "",
+            ...artifacts.actionItems.map((a) => `- ${a.text} (${a.ownerName})`),
+            "",
+          ]
+        : []),
+      `Recording and full transcript shared in Minutes.`,
+      `— Sent from Minutes`,
+    ].join("\n");
+    return {
+      id,
+      title: spec.title,
+      platform: spec.platform,
+      startedAt: spec.startedAt,
+      duration: end + 20,
+      captureMode: spec.captureMode,
+      status: "recorded",
+      speakers,
+      transcript,
+      highlights: artifacts.highlights,
+      actionItems: artifacts.actionItems,
+      summaries: { standard: artifacts.summary },
+      defaultTemplate: "standard",
+      emailDraft: email,
+    };
+  }
+
+  const script = SCRIPTS_BODY[spec.script];
 
   // transcript with {A0}/{A1} woven into the attendee's first name
   const filled = script.lines.map((l) => ({
     sp: l.sp,
-    text: l.text.replace(/\{A0\}/g, attendees[0] ?? "there").replace(/\{A1\}/g, attendees[1] ?? attendees[0] ?? "your first attendee"),
+    text: l.text.replace(/\{A0\}/g, attendeeNames[0] ?? "there").replace(/\{A1\}/g, attendeeNames[1] ?? attendeeNames[0] ?? "your first attendee"),
   }));
 
   // timestamps follow the same cadence as the seed builder (~2.6 words/sec)
@@ -318,11 +409,11 @@ export function composeMeeting(spec: DemoSpec, id: string): Meeting {
   };
 
   const first = (n: string) => n.trim().split(/\s+/)[0];
-  const a0 = attendees[0] ?? "the attendee";
+  const a0 = attendeeNames[0] ?? "the attendee";
 
   const gist = script.draft.gist
     .replace(/\{A0\}/g, first(a0))
-    .replace(/\{A1\}/g, attendees[1] ? first(attendees[1]) : first(a0));
+    .replace(/\{A1\}/g, attendeeNames[1] ? first(attendeeNames[1]) : first(a0));
 
   const summary = {
     template: "standard",
@@ -332,7 +423,7 @@ export function composeMeeting(spec: DemoSpec, id: string): Meeting {
       bullets: sec.bullets.map((bl) => {
         const t0 = at(bl.sub);
         return {
-          text: bl.text.replace(/\{A0\}/g, first(a0)).replace(/\{A1\}/g, attendees[1] ? first(attendees[1]) : first(a0)),
+          text: bl.text.replace(/\{A0\}/g, first(a0)).replace(/\{A1\}/g, attendeeNames[1] ? first(attendeeNames[1]) : first(a0)),
           cite: t0,
         };
       }),
@@ -348,13 +439,13 @@ export function composeMeeting(spec: DemoSpec, id: string): Meeting {
   }));
 
   const actionItems = script.draft.actions.map((a, i) => {
-    const owner = a.owner === "self" ? "You" : attendees[a.owner] ?? a0;
+    const owner = a.owner === "self" ? "You" : attendeeNames[a.owner] ?? a0;
     const due = new Date(spec.startedAt);
     due.setDate(due.getDate() + a.dueIn);
     return {
       id: `ad-${id}-${i + 1}`,
       ownerName: owner,
-      text: a.text.replace(/\{A0\}/g, first(a0)).replace(/\{A1\}/g, attendees[1] ?? a0),
+      text: a.text.replace(/\{A0\}/g, first(a0)).replace(/\{A1\}/g, attendeeNames[1] ?? a0),
       due: due.toISOString().slice(0, 10),
       cite: at(a.sub),
     };
@@ -362,6 +453,9 @@ export function composeMeeting(spec: DemoSpec, id: string): Meeting {
 
   const email = [
     `Hi all —`,
+    ...(spec.attendees.some((a) => a.email)
+      ? ["", `To: ${spec.attendees.filter((a) => a.email).map((a) => a.email).join(", ")}`]
+      : []),
     ``,
     `Quick recap of ${spec.title.toLowerCase()} from ${new Date(spec.startedAt).toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}:`,
     ``,
@@ -401,7 +495,54 @@ export function demoEventUpcoming(e: DemoEvent): Upcoming {
     title: e.spec.title,
     platform: e.spec.platform,
     startedAt: e.spec.startedAt,
-    attendees: ["You", ...e.spec.attendees],
+    attendees: ["You", ...e.spec.attendees.map((a) => a.name.trim())],
     captureMode: e.spec.captureMode,
   };
+}
+
+/* ── real calendar artifact ───────────────────────────────────────────────────
+ * A booking can go into a real calendar: the armed call downloads as an .ics
+ * (attendees' emails included). Nothing is emailed — the invite is a file you
+ * add to your own calendar. -------------------------------------------------------------------------- */
+
+export function makeIcs(ev: DemoEvent): string {
+  const start = new Date(ev.spec.startedAt);
+  const end = new Date(+start + 30 * 60_000); // default block: 30 minutes
+  const fmt = (d: Date) => d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+  const esc = (s: string) => s.replace(/([,;\\])/g, "\\$1");
+  const lines = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Minutes//booking//EN",
+    "BEGIN:VEVENT",
+    `UID:${ev.id}@minutes.app`,
+    `DTSTAMP:${fmt(new Date())}`,
+    `DTSTART:${fmt(start)}`,
+    `DTEND:${fmt(end)}`,
+    `SUMMARY:${esc(ev.spec.title)}`,
+    `LOCATION:${esc(ev.spec.platform)} (booked in Minutes)`,
+    `DESCRIPTION:${esc(
+      "Booked in Minutes. Invite generated as a .ics download — not emailed, because this build has no server. Minutes will capture this call.",
+    )}`,
+    ...ev.spec.attendees
+      .filter((a) => a.email)
+      .map((a) => `ATTENDEE;CN=${esc(a.name)}:mailto:${a.email}`),
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ];
+  return lines.join("\r\n");
+}
+
+export function downloadIcs(ev: DemoEvent): void {
+  try {
+    const blob = new Blob([makeIcs(ev)], { type: "text/calendar" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${ev.spec.title.replace(/[^\w]+/g, "-").toLowerCase() || "meeting"}.ics`;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch {
+    /* download not available */
+  }
 }

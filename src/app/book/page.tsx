@@ -1,6 +1,6 @@
 "use client";
 
-import { bookMeeting, loadDemoStore, SCRIPTS, type ScriptId } from "@/lib/demo";
+import { bookMeeting, loadDemoStore, SCRIPTS, type ScriptId, type Attendee } from "@/lib/demo";
 import type { Upcoming } from "@/lib/model";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -8,13 +8,15 @@ import { useEffect, useState } from "react";
 /** Book a call in the app itself: it lands in the armed list like a seeded call. */
 export default function BookPage() {
   const router = useRouter();
-  const [script, setScript] = useState<ScriptId>("discovery");
+  const [script, setScript] = useState<ScriptId | "blank">("blank");
   const [title, setTitle] = useState("Discovery — a new demo call");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [time, setTime] = useState("14:30");
   const [platform, setPlatform] = useState<Upcoming["platform"]>("Google Meet");
   const [captureMode, setCaptureMode] = useState<Upcoming["captureMode"]>("bot");
-  const [attendees, setAttendees] = useState("Alex Rivera, Jordan Cole");
+  const [attendees, setAttendees] = useState<Attendee[]>([
+    { name: "Alex Rivera", email: "alex@example.com" },
+  ]);
   const [ready, setReady] = useState(false);
 
   // the booking lives in this browser's storage only — say so next to the button
@@ -24,17 +26,23 @@ export default function BookPage() {
 
   const platforms: Upcoming["platform"][] = ["Zoom", "Google Meet", "Microsoft Teams", "In person"];
 
+  function setAt(i: number, patch: Partial<Attendee>) {
+    setAttendees((list) => list.map((a, j) => (j === i ? { ...a, ...patch } : a)));
+  }
+
   function book() {
-    const names = attendees.split(",").map((s) => s.trim()).filter(Boolean);
+    const clean = attendees
+      .map((a) => ({ name: a.name.trim(), email: a.email?.trim() || undefined }))
+      .filter((a) => a.name);
     const startedAt = new Date(`${date}T${time}:00`);
-    if (!(Number.isFinite(+startedAt) && title.trim()) || names.length === 0) return;
+    if (!(Number.isFinite(+startedAt) && title.trim()) || clean.length === 0) return;
     const ev = bookMeeting({
       script,
       title: title.trim(),
       platform,
       startedAt: startedAt.toISOString(),
       captureMode,
-      attendees: names,
+      attendees: clean,
     });
     router.push(`/live/${ev.id}`);
   }
@@ -66,6 +74,19 @@ export default function BookPage() {
         <div>
           <span className={label}>What kind of call is it?</span>
           <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Meeting type">
+            <button
+              onClick={() => setScript("blank")}
+              aria-pressed={script === "blank"}
+              className={
+                "rounded-full px-3 py-1.5 text-[13px] font-medium " +
+                (script === "blank"
+                  ? "bg-ink text-paper"
+                  : "border border-line bg-raised text-ink-soft hover:text-ink")
+              }
+              title="Your own meeting — feed the scribe what's said live"
+            >
+              Your own call
+            </button>
             {SCRIPTS.map((s) => (
               <button
                 key={s.id}
@@ -84,8 +105,10 @@ export default function BookPage() {
             ))}
           </div>
           <p className="mt-1.5 text-[12px] text-ink-faint">
-            The type decides what the capture produces — the walkthrough script Minutes will
-            summarize: {SCRIPTS.find((s) => s.id === script)?.blurb}.
+            {script === "blank"
+              ? "Your own meeting: during the live capture you feed what's said — type or paste it as it happens — and Minutes writes the summary, action items, highlights and clips from your words, every line cited to the moment."
+              : `The type decides what the capture produces — the walkthrough script Minutes will
+              summarize: ${SCRIPTS.find((s) => s.id === script)?.blurb}.`}
           </p>
         </div>
 
@@ -140,19 +163,49 @@ export default function BookPage() {
           </div>
         </div>
 
-        {/* attendees */}
+        {/* attendees with emails */}
         <div>
-          <label className={label} htmlFor="b-att">Who else is on the call?</label>
-          <input
-            id="b-att"
-            value={attendees}
-            onChange={(e) => setAttendees(e.target.value)}
-            className={input}
-            placeholder="Comma-separated names"
-          />
+          <span className={label}>Who else is on the call?</span>
+          <ul className="space-y-1.5">
+            {attendees.map((a, i) => (
+              <li key={i} className="flex items-center gap-2">
+                <input
+                  value={a.name}
+                  onChange={(e) => setAt(i, { name: e.target.value })}
+                  placeholder="Name"
+                  aria-label={`Attendee ${i + 1} name`}
+                  className="min-w-0 flex-1 rounded-lg border border-line bg-paper px-3 py-2 text-[14px] focus:outline-none focus:border-ink-soft"
+                />
+                <input
+                  value={a.email ?? ""}
+                  onChange={(e) => setAt(i, { email: e.target.value })}
+                  placeholder="email@company.com"
+                  type="email"
+                  aria-label={`Attendee ${i + 1} email`}
+                  className="min-w-0 flex-[1.4] rounded-lg border border-line bg-paper px-3 py-2 text-[14px] focus:outline-none focus:border-ink-soft"
+                />
+                {attendees.length > 1 && (
+                  <button
+                    onClick={() => setAttendees((l) => l.filter((_, j) => j !== i))}
+                    aria-label={`Remove attendee ${a.name || i + 1}`}
+                    className="shrink-0 rounded-full border border-line px-2 py-1 text-[12px] text-ink-faint hover:border-record hover:text-record"
+                  >
+                    ✕
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+          <button
+            onClick={() => setAttendees((l) => [...l, { name: "", email: "" }])}
+            className="mt-2 text-[12.5px] text-record underline underline-offset-2 hover:text-ink"
+          >
+            + Add an attendee
+          </button>
           <p className="mt-1.5 text-[12px] text-ink-faint">
-            The first name leads the call and gets the most lines. Two guests is the sweet spot —
-            with one, every guest line folds into them.
+            Names lead the call (the first gets the most lines in scripted calls). Emails go on
+            the .ics invite you can add to your real calendar and into the follow-up draft —
+            nothing is emailed in this build.
           </p>
         </div>
 
@@ -163,7 +216,7 @@ export default function BookPage() {
           </p>
           <button
             onClick={book}
-            disabled={!title.trim() || attendees.split(",").every((s) => !s.trim())}
+            disabled={!title.trim() || attendees.every((a) => !a.name.trim())}
             className="shrink-0 rounded-full bg-ink px-5 py-2.5 text-[14px] font-medium text-paper hover:opacity-90 disabled:opacity-40"
           >
             Book &amp; arm the capture

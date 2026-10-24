@@ -59,8 +59,15 @@ quote and its citation included), and nothing happens without Approve — the bu
   represents what capture would produce, and the UI says so plainly (see the walkthrough).
 - **Book a call in the app** (`/book`): the booking form arms a capture run like a seeded
   call — run the simulation and a full meeting is generated (transcript, summary, actions,
-  highlights, clips, chat, dispatch). With no database, bookings live in the booking
-  browser's localStorage only and say so in the UI; seed data is untouched.
+  highlights, clips, chat, dispatch). Two modes: a **walkthrough script** (the script's
+  dialogue is captured) or **your own call** — during the live capture *you* feed what's
+  said, line by line (type or paste it), speaker by speaker, and Minutes extracts the
+  summary, action items and highlights from your words, every line citing the moment, then
+  the whole app (playback, chat, clips, dispatch, follow-up) runs on your content. Attendees
+  are booked with **name + email**; emails go onto a downloadable **.ics calendar file**
+  (RFC 5545, real `ATTENDEE;mailto:` lines — add it to any calendar app) and into the
+  follow-up draft's `To:` line. With no database, bookings live in the booking browser's
+  localStorage only and say so in the UI; seed data is untouched.
 - **Real corpus meetings on board**: three real meetings imported from the public AMI Meeting
   Corpus (`edinburghcstr/ami`, ihm/test, via Hugging Face datasets-server —
   `scripts/fetch-ami.mjs` → generated `src/lib/seed/ami-raw.ts`). Real utterances, real
