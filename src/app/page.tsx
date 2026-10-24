@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { connection } from "next/server";
-import { allMeetings, upcomingEvents } from "@/lib/data";
+import { allMeetings, upcomingEvents, IMPORTED, isImported } from "@/lib/data";
 import { SpeakingGraph } from "@/components/SpeakingGraph";
 import { DemoArmedSection, DemoRecordedSection } from "@/components/demo/DemoBooked";
 import { dayBucket, fmtDate, fmtTime, hms } from "@/lib/time";
@@ -47,11 +47,65 @@ export default async function MeetingsPage() {
       <DemoRecordedSection />
 
       <section aria-label="Recorded meetings">
-        {meetings.map((m) => (
+        {meetings.filter((m) => !isImported(m)).map((m) => (
           <MeetingRow key={m.id} id={m.id} bucket={dayBucket(m.startedAt)} inner={row(m)} />
         ))}
       </section>
+
+      <ImportedSection />
     </div>
+  );
+}
+
+function ImportedSection() {
+  if (IMPORTED.length === 0) return null;
+  return (
+    <section aria-label="Imported from the AMI corpus" className="mt-12">
+      <div className="mb-3 flex items-baseline justify-between gap-4">
+        <h2 className="eyebrow">Imported — real meetings, AMI corpus</h2>
+        <span className="text-[12px] text-ink-faint">
+          fetched from the public AMI Meeting Corpus (Hugging Face)
+        </span>
+      </div>
+      <ul className="pane mb-3 divide-y divide-line-soft">
+        {IMPORTED.map((m) => (
+          <li key={m.id}>
+            <Link href={`/m/${m.id}`} className="group flex items-center gap-4 px-4 py-3.5 hover:bg-line-soft/40">
+              <div className="min-w-0 flex-1">
+                <h3 className="truncate font-[family-name:var(--font-display)] text-[16.5px] font-medium tracking-tight group-hover:underline decoration-line-soft decoration-2 underline-offset-4">
+                  {m.title}
+                </h3>
+                <p className="mt-0.5 flex items-center gap-2 text-[12.5px] text-ink-soft">
+                  <span className="inline-flex -space-x-1.5" aria-hidden>
+                    {m.speakers.slice(0, 6).map((s) => (
+                      <span
+                        key={s.id}
+                        title={s.name}
+                        className="inline-block size-2.5 rounded-full ring-2 ring-paper"
+                        style={{ background: s.color }}
+                      />
+                    ))}
+                  </span>
+                  {dayBucket(m.startedAt)} · {hms(m.duration)} · {m.transcript.length} turns ·{" "}
+                  {m.highlights.length === 1 ? "1 flagged moment" : `${m.highlights.length} flagged moments`}
+                </p>
+              </div>
+              <span className="shrink-0 rounded-full bg-record-soft px-2.5 py-0.5 text-[11.5px] font-medium text-record">
+                corpus import
+              </span>
+              <span className="hidden shrink-0 text-[13px] text-ink-faint group-hover:text-ink sm:block">
+                Open ↗
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+      <p className="text-[13px] text-ink-faint">
+        Real utterances with real timestamps and the dataset&rsquo;s speaker ids — minutes, clips,
+        chat and search all run on them. Minutes&rsquo; summary, highlights and action items here
+        are heuristic extractions from the real transcript, every line citing the moment.
+      </p>
+    </section>
   );
 }
 

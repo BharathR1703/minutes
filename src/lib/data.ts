@@ -1,8 +1,12 @@
 import type { Deal, Meeting, Utterance } from "@/lib/model";
 import { MEETINGS, UPCOMING, DEALS } from "@/lib/seed";
+import { amiMeetings } from "@/lib/seed/ami";
+
+export const IMPORTED = amiMeetings();
+export const isImported = (m: Meeting) => m.id.startsWith("ami-");
 
 export function getMeeting(id: string): Meeting | undefined {
-  return MEETINGS.find((m) => m.id === id);
+  return [...MEETINGS, ...IMPORTED].find((m) => m.id === id);
 }
 
 export function getDeal(id: string): Deal | undefined {
@@ -14,8 +18,9 @@ export function dealForMeeting(meetingId: string): Deal | undefined {
   return DEALS.find((d) => d.meetingIds.includes(meetingId));
 }
 
+/** all meetings, seeded + imported from the AMI corpus */
 export function allMeetings(): Meeting[] {
-  return MEETINGS;
+  return [...MEETINGS, ...IMPORTED];
 }
 
 export function upcomingEvents() {
@@ -54,7 +59,7 @@ export function searchMeetings(q: string): SearchHit[] {
   const terms = qLower.split(/\s+/).filter(Boolean);
   const hits: SearchHit[] = [];
 
-  for (const m of MEETINGS) {
+  for (const m of allMeetings()) {
     // transcripts
     for (const u of m.transcript) {
       const l = u.text.toLowerCase();

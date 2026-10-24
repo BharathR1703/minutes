@@ -61,6 +61,13 @@ quote and its citation included), and nothing happens without Approve — the bu
   call — run the simulation and a full meeting is generated (transcript, summary, actions,
   highlights, clips, chat, dispatch). With no database, bookings live in the booking
   browser's localStorage only and say so in the UI; seed data is untouched.
+- **Real corpus meetings on board**: three real meetings imported from the public AMI Meeting
+  Corpus (`edinburghcstr/ami`, ihm/test, via Hugging Face datasets-server —
+  `scripts/fetch-ami.mjs` → generated `src/lib/seed/ami-raw.ts`). Real utterances, real
+  timestamps, dataset speaker ids. The corpus carries no calendar dates (dates shown are
+  labeled placeholders from the corpus year), and Minutes' summary/highlights/actions on
+  these are heuristic extractions from the real transcript, every line citing the moment.
+  The dashboard lists them under "Imported — real meetings" with the caveat spelled out.
 - The **AI is mocked**: chat answers, generated clips, and dispatch drafts are retrieval +
   hand-woven text streamed token-by-token — no model call, the code says so in its footnote.
 - The **audio you hear** in playback is a synthesized voice bed (per-speaker pitch), labeled
