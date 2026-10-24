@@ -17,3 +17,4 @@
 {"ts":"2026-10-24T09:17:11Z","session":"f6e804a3-1c28-4634-abd5-b0395560dade","prompt":"when signing to account it is asking for 6 digit code but in mail no code apperars why"}
 {"ts":"2026-10-24T09:21:36Z","session":"f6e804a3-1c28-4634-abd5-b0395560dade","prompt":"no need of supabase two way autentications do one way authentication only by email and passwords"}
 {"ts":"2026-10-24T09:29:51Z","session":"f6e804a3-1c28-4634-abd5-b0395560dade","prompt":"no need of Account created — but this Supabase project asks for an email confirmation on sign-up. Open the link it just sent, or disable 'Confirm email' in the dashboard to make accounts password-only."}
+{"ts":"2026-10-24T09:33:47Z","session":"f6e804a3-1c28-4634-abd5-b0395560dade","prompt":"account is created but sign in giving the issue"}
