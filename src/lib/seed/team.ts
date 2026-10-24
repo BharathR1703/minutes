@@ -1,5 +1,10 @@
 import type { Meeting, Speaker } from "@/lib/model";
 import { builder } from "./builder";
+import { daysAgo, dueIn, daysAhead } from "./dates";
+
+const oneOnOneAt = daysAgo(16, 9, 30);
+const retroAt = daysAgo(18, 16, 0);
+const churnAt = daysAgo(22, 11, 0);
 
 // ── 1:1 — Maya & You ─────────────────────────────────────────────────────────
 const S11: Speaker[] = [
@@ -34,7 +39,7 @@ export const oneOnOneMeeting: Meeting = {
   id: "1on1-maya",
   title: "1:1 — Maya",
   platform: "Microsoft Teams",
-  startedAt: "2026-10-08T09:30:00Z",
+  startedAt: oneOnOneAt,
   duration: b1.end + 20,
   captureMode: "bot-free",
   status: "recorded",
@@ -57,7 +62,7 @@ export const oneOnOneMeeting: Meeting = {
       id: "a-oo-1",
       ownerName: "Maya Lindqvist",
       text: "Review five funnel session recordings; mockups Wednesday with two recordings in the deck",
-      due: "2026-10-28",
+      due: dueIn(oneOnOneAt, 20),
       cite: (() => {
         const u = b1.built().find((x) => x.text.includes("sit with five session recordings"));
         return u ? u.t : 0;
@@ -67,7 +72,7 @@ export const oneOnOneMeeting: Meeting = {
       id: "a-oo-2",
       ownerName: "You",
       text: "On-call rotation: give Sam the opening slot, Maya after",
-      due: "2026-10-12",
+      due: dueIn(oneOnOneAt, 4),
       cite: (() => {
         const u = b1.built().find((x) => x.text.includes("Give Sam the opening slot"));
         return u ? u.t : 0;
@@ -112,7 +117,7 @@ export const retroMeeting: Meeting = {
   id: "sprint-24-retro",
   title: "Sprint 24 retro",
   platform: "Google Meet",
-  startedAt: "2026-10-06T16:00:00Z",
+  startedAt: retroAt,
   duration: b2.end + 20,
   captureMode: "bot",
   status: "recorded",
@@ -134,7 +139,7 @@ export const retroMeeting: Meeting = {
       id: "a-re-1",
       ownerName: "You",
       text: "Publish the API conventions doc (from draft) and review against it next sprint",
-      due: "2026-10-13",
+      due: dueIn(retroAt, 7),
       cite: (() => {
         const u = b2.built().find((x) => x.text.includes("API conventions doc from draft to published") || x.text.includes("from draft to published"));
         return u ? u.t : 0;
@@ -144,7 +149,7 @@ export const retroMeeting: Meeting = {
       id: "a-re-2",
       ownerName: "Jonas Weber",
       text: "Set up weekend escalation rotation",
-      due: "2026-10-10",
+      due: dueIn(retroAt, 4),
       cite: (() => {
         const u = b2.built().find((x) => x.text.includes("give the rotation an explicit escalation channel"));
         return u ? u.t : 0;
@@ -154,7 +159,7 @@ export const retroMeeting: Meeting = {
       id: "a-re-3",
       ownerName: "Sam Okafor",
       text: "One deliberate pairing block with Dennis next sprint",
-      due: "2026-10-13",
+      due: dueIn(retroAt, 7),
       cite: (() => {
         const u = b2.built().find((x) => x.text.includes("one deliberate pairing block"));
         return u ? u.t : 0;
@@ -199,7 +204,7 @@ export const churnMeeting: Meeting = {
   id: "helmar-checkin",
   title: "CS check-in — Helmar Clinic",
   platform: "Google Meet",
-  startedAt: "2026-10-02T11:00:00Z",
+  startedAt: churnAt,
   duration: b3.end + 20,
   captureMode: "bot",
   status: "recorded",
@@ -222,7 +227,7 @@ export const churnMeeting: Meeting = {
       id: "a-ch-1",
       ownerName: "Chloe Kim",
       text: "Trace the invented task on Helmar's Sept call; report this week; file citation feature as P1",
-      due: "2026-10-07",
+      due: dueIn(churnAt, 5),
       cite: (() => {
         const u = b3.built().find((x) => x.text.includes("trace the summary line"));
         return u ? u.t : 0;
@@ -232,7 +237,7 @@ export const churnMeeting: Meeting = {
       id: "a-ch-2",
       ownerName: "You",
       text: "Ship per-task citations next release; put admin reassignment date in writing",
-      due: "2026-10-31",
+      due: dueIn(churnAt, 29),
       cite: (() => {
         const u = b3.built().find((x) => x.text.includes("every extracted task carries a citation"));
         return u ? u.t : 0;
@@ -249,7 +254,7 @@ export const upcomingCalendar = [
     id: "up-1",
     title: "Product roadmap — Q3 bets",
     platform: "Zoom" as const,
-    startedAt: "2026-10-22T17:00:00Z",
+    startedAt: daysAhead(0, 17, 0),
     attendees: ["You", "Priya", "Jonas", "Maya", "Sam", "Rhea", "Tom", "Chloe"],
     captureMode: "bot" as const,
   },
@@ -257,7 +262,7 @@ export const upcomingCalendar = [
     id: "up-2",
     title: "1:1 — Maya",
     platform: "Microsoft Teams" as const,
-    startedAt: "2026-10-23T14:00:00Z",
+    startedAt: daysAhead(1, 14, 0),
     attendees: ["You", "Maya"],
     captureMode: "bot-free" as const,
   },
@@ -265,7 +270,7 @@ export const upcomingCalendar = [
     id: "up-3",
     title: "Sprint 24 retro",
     platform: "Google Meet" as const,
-    startedAt: "2026-10-24T10:30:00Z",
+    startedAt: daysAhead(3, 10, 30),
     attendees: ["You", "Priya", "Sam", "Jonas"],
     captureMode: "bot" as const,
   },

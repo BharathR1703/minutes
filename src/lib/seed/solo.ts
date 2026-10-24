@@ -1,5 +1,8 @@
 import type { Meeting, Speaker } from "@/lib/model";
 import { builder } from "./builder";
+import { daysAgo, dueIn } from "./dates";
+
+const soloAt = daysAgo(2, 8, 41);
 
 const you: Speaker = { id: "you", name: "You", color: "#0E7C86", self: true };
 
@@ -25,7 +28,7 @@ export const soloMeeting: Meeting = {
   id: "solo-test",
   title: "Notetaker test call",
   platform: "Google Meet",
-  startedAt: "2026-10-22T08:41:00Z",
+  startedAt: soloAt,
   duration: b.end + 10,
   captureMode: "bot-free",
   status: "recorded",
@@ -44,7 +47,7 @@ export const soloMeeting: Meeting = {
       id: "a-solo-1",
       ownerName: "You",
       text: "Review this test recording before the team sync",
-      due: "2026-10-22",
+      due: dueIn(soloAt, 0),
       cite: at("review this test recording before the team sync"),
     },
   ],

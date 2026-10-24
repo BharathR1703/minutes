@@ -1,5 +1,11 @@
 import type { Meeting, Speaker, Summary } from "@/lib/model";
 import { builder } from "./builder";
+import { daysAgo, dueIn, thursdayAhead } from "./dates";
+
+// discovery ran five days before the eval check-in, so its date follows the
+// Thursday anchor from dates.ts — it always lands on a Friday, matching what
+// the dialogue says ("check-in next Thursday")
+const discoveryAt = daysAgo(12 - thursdayAhead(), 14, 30);
 
 const S: Speaker[] = [
   { id: "you", name: "You", color: "#0E7C86", self: true },
@@ -48,7 +54,7 @@ export const salesMeeting: Meeting = {
   id: "ridgeline-discovery",
   title: "Discovery — Ridgeline Foods",
   platform: "Google Meet",
-  startedAt: "2026-10-17T14:30:00Z",
+  startedAt: discoveryAt,
   duration: b.end + 25,
   captureMode: "bot",
   status: "recorded",
@@ -81,21 +87,21 @@ export const salesMeeting: Meeting = {
       id: "a-sa-1",
       ownerName: "You",
       text: "Send recap + security packet to Dana",
-      due: "2026-10-17",
+      due: dueIn(discoveryAt, 0),
       cite: at("Send the recap with the security packet"),
     },
     {
       id: "a-sa-2",
       ownerName: "You",
       text: "Set up eval workspace with warehouse leads included",
-      due: "2026-10-20",
+      due: dueIn(discoveryAt, 3),
       cite: at("warehouse managers the app, not just ops"),
     },
     {
       id: "a-sa-3",
       ownerName: "Dana Reyes (Ridgeline)",
       text: "Nominate five Monday ops calls for the eval week",
-      due: "2026-10-20",
+      due: dueIn(discoveryAt, 3),
       cite: at("Five real Monday calls this coming week"),
     },
   ],

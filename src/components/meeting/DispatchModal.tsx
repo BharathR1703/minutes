@@ -64,7 +64,7 @@ export function DispatchModal({
 
   const jira = [
     `Summary:  [${ownerFirst.toUpperCase()}] ${shorten(action.text, 64)}`,
-    `Type:     Task · Priority: ${action.due && action.due <= "2026-10-31" ? "High" : "Medium"}`,
+    `Type:     Task · Priority: ${action.due && +new Date(action.due) - Date.now() < 4 * 86_400_000 ? "High" : "Medium"}`,
     `Due:      ${action.due ? fmtDate(action.due) : "—"}   Reported by: Minutes`,
     `Source:   ${meeting.title} @ [${mmss(action.cite)}] (linked recording moment)`,
     "",

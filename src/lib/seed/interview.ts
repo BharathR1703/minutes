@@ -1,5 +1,8 @@
 import type { Meeting, Speaker } from "@/lib/model";
 import { builder } from "./builder";
+import { daysAgo, dueIn } from "./dates";
+
+const interviewAt = daysAgo(9, 10, 0);
 
 const S: Speaker[] = [
   { id: "you", name: "You", color: "#0E7C86", self: true },
@@ -41,7 +44,7 @@ export const interviewMeeting: Meeting = {
   id: "interview-lena",
   title: "Interview — Lena Hoffmann (Systems TS)",
   platform: "Zoom",
-  startedAt: "2026-10-15T10:00:00Z",
+  startedAt: interviewAt,
   duration: b.end + 30,
   captureMode: "bot",
   status: "recorded",
@@ -67,14 +70,14 @@ export const interviewMeeting: Meeting = {
       id: "a-in-1",
       ownerName: "You",
       text: "Send Jonas' systems-design round invite to Lena",
-      due: "2026-10-15",
+      due: dueIn(interviewAt, 0),
       cite: at("Next step is a systems-design round with Jonas"),
     },
     {
       id: "a-in-2",
       ownerName: "You",
       text: "Reference check: two from the telemetry project",
-      due: "2026-10-22",
+      due: dueIn(interviewAt, 7),
       cite: at("then references"),
     },
   ],

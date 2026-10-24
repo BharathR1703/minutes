@@ -1,10 +1,11 @@
 import type { Deal, Meeting, Speaker, Summary } from "@/lib/model";
 import type { RiskCite } from "@/lib/model";
 import { builder } from "./builder";
+import { daysAgo, dueIn, daysAhead, shortDate, thursdayAhead } from "./dates";
 import { salesAt } from "./sales";
 
 // ── Eval check-in — the call the discovery meeting set up ────────────────────
-// Discovery (Oct 17) promised: five real Monday calls through Minutes, a
+// The discovery call promised: five real Monday calls through Minutes, a
 // check-in the following Thursday. This is that check-in, eight days later.
 // The deal room at /deal/ridgeline-foods aggregates both calls.
 
@@ -22,6 +23,9 @@ const at = (sub: string) => {
   return u.t;
 };
 
+// anchored: the eval check-in is the most recent Thursday, 15:00 (see dates.ts)
+const checkinAt = daysAgo(7 - thursdayAhead(), 15, 0);
+
 b.say("you", " Dana, Marc — and Tosh, good, you in the room is exactly what I asked for. Five calls, one week. Let's take it call by call.");
 b.say("dana", " Quick frame before Tosh goes: this is the eval we set up last Friday. All five Monday ops calls ran through Minutes, Marc hands-off, warehouse leads in the app like you agreed.");
 b.say("marc", " Then let me start with my favorite fact: on Friday I didn't write notes. I didn't write notes, Dana. I read the summary, ticked it against what I remembered, pushed it to Slack. Ten minutes.");
@@ -35,7 +39,7 @@ b.say("dana", " Full transparency before Thursday: procurement keeps a Loopnote 
 b.say("you", " They should — do it on real calls, not a staged demo. That's the one pitch I'd make to your procurement team.");
 b.say("marc", " I saw Loopnote's demo summary last spring. It read beautifully on a staged call. Our calls are three dialects and a forklift alarm in the background — staged doesn't survive that.");
 b.say("tosh", " We piloted Loopnote on one route last year. It lasted two weeks — the crew couldn't tell a task from a memo.");
-b.say("dana", " So Thursday the 29th, the rollout decision: twelve ops seats now, six supply later if the pilot holds. Bring the plan to that call and procurement gets the comparison sheet.");
+b.say("dana", " So: Thursday's the rollout decision: twelve ops seats now, six supply later if the pilot holds. Bring the plan to that call and procurement gets the comparison sheet.");
 b.say("you", " You'll have the plan Monday. Rollout phased: ops first — dispatch, task feed, clips — supply team in after the pilot holds. And I'll attach the security packet procurement already has coming.");
 b.say("marc", " One condition carried over from Friday: when we expand, warehouse leads get the app before the supply team does. They earned it this week.");
 b.say("dana", " Agreed. Tosh, last word?");
@@ -45,7 +49,7 @@ const checkin: Meeting = {
   id: "ridgeline-checkin",
   title: "Eval check-in — Ridgeline Foods",
   platform: "Google Meet",
-  startedAt: "2026-10-22T15:00:00Z",
+  startedAt: checkinAt,
   duration: b.end + 15,
   captureMode: "bot",
   status: "recorded",
@@ -79,28 +83,28 @@ const checkin: Meeting = {
       id: "a-dl-1",
       ownerName: "You",
       text: "Draft the phased rollout plan (12 ops seats, supply team deferred) for Thursday's decision call",
-      due: "2026-10-26",
+      due: dueIn(checkinAt, 4),
       cite: at("You'll have the plan Monday"),
     },
     {
       id: "a-dl-2",
       ownerName: "Tosh Okafor (Ridgeline)",
       text: "Run lead pairing sessions on Route 4 before Thursday's standup",
-      due: "2026-10-28",
+      due: dueIn(checkinAt, 6),
       cite: at("sat with two leads and played the clip"),
     },
     {
       id: "a-dl-3",
       ownerName: "Dana Reyes (Ridgeline)",
       text: "Send procurement the Loopnote comparison sheet",
-      due: "2026-10-27",
+      due: dueIn(checkinAt, 5),
       cite: at("procurement gets the comparison sheet"),
     },
     {
       id: "a-dl-4",
       ownerName: "Marc Dubois (Ridgeline)",
       text: "Tick the five Monday summaries against his own before forwarding",
-      due: "2026-10-24",
+      due: dueIn(checkinAt, 2),
       cite: at("ticked it against what I remembered"),
     },
   ],
@@ -112,7 +116,7 @@ const checkin: Meeting = {
 // SPICED, as a mid-eval check-in renders it
 export const checkinSpiced: Summary = {
   template: "spiced",
-  gist: "Ridgeline's eval week held: Marc stopped handwriting Friday notes, dispute arguments fell to zero, and Route 4 adopted once tasks carried playable quotes. Procurement holds a Loopnote file — demo-comparison requested for Thursday's Oct 29 rollout decision (12 ops seats, supply deferred).",
+  gist: "Ridgeline's eval week held: Marc stopped handwriting Friday notes, dispute arguments fell to zero, and Route 4 adopted once tasks carried playable quotes. Procurement holds a Loopnote file — demo-comparison requested for the rollout decision Thursday (12 ops seats, supply deferred).",
   sections: [
     {
       heading: "Situation",
@@ -153,8 +157,8 @@ export const checkinSpiced: Summary = {
       heading: "Critical event",
       bullets: [
         {
-          text: "Rollout decision Thursday Oct 29: 12 ops seats now, 6 supply later, procurement gets the comparison.",
-          cite: at("Thursday the 29th, the rollout decision"),
+          text: "Rollout decision lands Thursday: 12 ops seats now, 6 supply later, procurement gets the comparison.",
+          cite: at("Thursday's the rollout decision"),
         },
       ],
     },
@@ -192,7 +196,7 @@ export const checkinStandard: Summary = {
     {
       heading: "Next steps",
       bullets: [
-        { text: "Phased rollout plan due Monday for the Oct 29 decision call.", cite: at("You'll have the plan Monday") },
+        { text: "Phased rollout plan due Monday for the Thursday decision call.", cite: at("You'll have the plan Monday") },
         { text: "Procurement receives the Loopnote comparison sheet Wednesday.", cite: at("procurement gets the comparison sheet") },
       ],
     },
@@ -205,16 +209,18 @@ function ct(meetingId: string, sub: string): RiskCite {
   return { meetingId, t: at(sub) };
 }
 
+const decisionAt = daysAhead(thursdayAhead(), 15, 0);
+
 export const ridgelineDeal: Deal = {
   id: "ridgeline-foods",
   client: "Ridgeline Foods",
-  stage: "Eval done — decision Oct 29",
+  stage: `Eval done — decision ${shortDate(decisionAt)}`,
   value: "$21,600 est. ACV (18 seats)",
   champion: "Dana Reyes (Ridgeline)",
-  closeTarget: "2026-10-29",
+  closeTarget: decisionAt,
   brief:
-    "Ridgeline Foods distributes for 400 independent grocers, and a third of what their ops calls decide never reaches a ticket — outcomes live in Marc's Friday notebook. The Oct 17 discovery set up an eval on real Monday calls; the Oct 22 check-in says it held: Marc is hands-off, dispute arguments are at zero, and Route 4's warehouse crew adopted once tasks carried playable quotes. Procurement keeps a Loopnote file from last spring and will ask for a side-by-side. Decision call Thursday Oct 29: 12 ops seats now, 6 supply later, phased ops-first.",
-  nextStep: "Rollout decision — Thursday Oct 29 with Dana, Marc and procurement",
+    "Ridgeline Foods distributes for 400 independent grocers, and a third of what their ops calls decide never reaches a ticket — outcomes live in Marc's Friday notebook. The discovery call set up an eval on real Monday calls; the check-in says it held: Marc is hands-off, dispute arguments are at zero, and Route 4's warehouse crew adopted once tasks carried playable quotes. Procurement keeps a Loopnote file from last spring and will ask for a side-by-side. Decision call Thursday: 12 ops seats now, 6 supply later, phased ops-first.",
+  nextStep: `Rollout decision — ${shortDate(decisionAt)}, with Dana, Marc and procurement`,
   risks: [
     {
       id: "r-loopnote",
@@ -234,7 +240,7 @@ export const ridgelineDeal: Deal = {
       id: "r-security",
       label: "Security review outstanding",
       severity: "watch",
-      note: "Packet went with the Oct 17 recap; procurement owns the timing.",
+      note: "Packet went with the discovery recap; procurement owns the timing.",
       cites: [ct("ridgeline-checkin", "security packet procurement already has coming")],
     },
   ],

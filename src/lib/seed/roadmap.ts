@@ -1,5 +1,8 @@
 import type { Meeting, Speaker } from "@/lib/model";
 import { builder } from "./builder";
+import { daysAgo, dueIn } from "./dates";
+
+const roadmapAt = daysAgo(3, 17, 0);
 
 const S: Speaker[] = [
   { id: "you", name: "You", color: "#0E7C86", self: true },
@@ -94,7 +97,7 @@ export const roadmapMeeting: Meeting = {
   id: "q3-roadmap",
   title: "Product roadmap — Q3 bets",
   platform: "Zoom",
-  startedAt: "2026-10-21T17:00:00Z",
+  startedAt: roadmapAt,
   duration: b.end + 40,
   captureMode: "bot",
   status: "recorded",
@@ -134,42 +137,42 @@ export const roadmapMeeting: Meeting = {
       id: "a-rm-1",
       ownerName: "Maya Lindqvist",
       text: "Hi-fi mockups of the activation flow",
-      due: "2026-10-28",
+      due: dueIn(roadmapAt, 7),
       cite: at("hi-fi mockups of the activation flow"),
     },
     {
       id: "a-rm-2",
       ownerName: "Sam Okafor",
       text: "Workspace scoping changes (invites, permissions, team API), Dennis joins after infra",
-      due: "2026-11-06",
+      due: dueIn(roadmapAt, 16),
       cite: at("Call it two and a half weeks"),
     },
     {
       id: "a-rm-3",
       ownerName: "Jonas Weber",
       text: "Replan search beta: internal + 10 design partners late Oct, written GA date Nov 12",
-      due: "2026-10-24",
+      due: dueIn(roadmapAt, 3),
       cite: at("GA targeted November 12"),
     },
     {
       id: "a-rm-4",
       ownerName: "Rhea Menon",
       text: "Cohort revenue pull by team size to price annual tiers",
-      due: "2026-10-28",
+      due: dueIn(roadmapAt, 7),
       cite: at("needs to happen before the pricing page"),
     },
     {
       id: "a-rm-5",
       ownerName: "You",
       text: "Pricing tiers with Tom after Rhea's cohort lands; soft-dependency note in replan doc",
-      due: "2026-11-02",
+      due: dueIn(roadmapAt, 12),
       cite: at("Rhea owns the cohort pull, Tom and I own the tiers"),
     },
     {
       id: "a-rm-6",
       ownerName: "Sam Okafor",
       text: "Two-day admin reassignment (post workspace scoping)",
-      due: "2026-11-10",
+      due: dueIn(roadmapAt, 20),
       cite: at("The cheap version is maybe two days"),
     },
   ],
