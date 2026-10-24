@@ -48,24 +48,30 @@ export default function SignInPage() {
     setBusy(false);
     if (err) {
       if (err.message === "Email not confirmed") {
-        setError(
-          "That email is registered but its confirmation mail hasn't been clicked — disable 'Confirm email' in Supabase → Authentication → Providers → Email to skip mail entirely.",
-        );
+        setError("Sign-in isn't active for that account yet — its one-time confirmation hasn't happened. The dashboard's 'Confirm email' toggle turns the requirement off.");
       } else if (err.message.toLowerCase().includes("invalid login")) {
         setError("Email or password doesn't match an account.");
       } else if (err.message.toLowerCase().includes("already registered")) {
         setError("That email already has an account — switch to Sign in.");
       } else if (err.status === 429) {
-        setError("The sign-up was received but its confirmation mail is rate-limited — wait a few minutes. Once 'Confirm email' is disabled in the Supabase dashboard this never applies: no mail is involved at all.");
+        setError("Supabase's built-in mailer is rate-limited right now — wait a few minutes.");
       } else {
         setError(err.message);
       }
       return;
     }
     if (mode === "signup" && !data.session) {
-      // server requires email confirmation before the first session
-      setNotice(
-        "Account created — but this Supabase project asks for an email confirmation on sign-up. Open the link it just sent, or disable 'Confirm email' in the dashboard to make accounts password-only.",
+      // server hadn't confirmed silently at signUp-time — try signing in right away
+      const { error: e2 } = await supabase.auth.signInWithPassword({ email, password });
+      if (!e2) {
+        setSignedIn(email);
+        router.push("/");
+        return;
+      }
+      setError(
+        e2.message === "Email not confirmed"
+          ? "Account created — but its first sign-in isn't active yet: the dashboard's 'Confirm email' toggle switches that requirement off." // legacy: only while that toggle is still on
+          : "Account created — switch to Sign in and use your password.",
       );
       setMode("signin");
       return;
