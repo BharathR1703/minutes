@@ -37,6 +37,7 @@ export default function RecordPage() {
   const [people, setPeople] = useState("Priya Mohan, Tom Osei");
   // segment editor state (one entry per transcribed line: sp index, editable text)
   const [segments, setSegments] = useState<Segment[]>([]);
+  const [editing, setEditing] = useState<number | null>(null);
   const [resultId, setResultId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -76,7 +77,7 @@ export default function RecordPage() {
     setStage({ kind: "model", pct: 0 });
     const { pipeline, env } = await import("@huggingface/transformers");
     env.allowLocalModels = false;
-    const asr = await pipeline("automatic-speech-recognition", "Xenova/whisper-tiny.en", {
+    const asr = await pipeline("automatic-speech-recognition", "Xenova/whisper-base.en", {
       dtype: "q8",
       progress_callback: (p: { status: string; progress?: number }) => {
         if (p.status === "progress" && typeof p.progress === "number") setStage({ kind: "model", pct: Math.round(p.progress) });
@@ -154,7 +155,7 @@ export default function RecordPage() {
           />
           <p className="mt-1.5 text-[12px] text-ink-faint">
             mp3, m4a, wav, webm, ogg — up to ~30 minutes transcribes in reasonable time; the
-            model (~45&nbsp;MB) downloads once.
+            model (~90&nbsp;MB) downloads once.
           </p>
           <div className="mt-4">
             <label className={label} htmlFor="r-people">People in this recording</label>
@@ -248,13 +249,33 @@ export default function RecordPage() {
                           </button>
                         ))}
                     </div>
-                    <p className="min-w-0 flex-1 text-[14px] leading-relaxed text-ink-soft">{seg.text}</p>
+                    {editing === i ? (
+                      <textarea
+                        autoFocus
+                        value={seg.text}
+                        onChange={(e) =>
+                          setSegments((list) => list.map((s, j) => (j === i ? { ...s, text: e.target.value } : s)))
+                        }
+                        onBlur={() => setEditing(null)}
+                        rows={Math.max(2, Math.ceil(seg.text.length / 60))}
+                        className="min-w-0 flex-1 rounded-lg border border-line bg-paper px-2 py-1 text-[13.5px] leading-relaxed text-ink-soft focus:border-ink-soft focus:outline-none"
+                      />
+                    ) : (
+                      <button
+                        onClick={() => setEditing(i)}
+                        className="min-w-0 flex-1 text-left text-[14px] leading-relaxed text-ink-soft hover:text-ink"
+                        title="Fix anything the model misheard"
+                      >
+                        {seg.text}
+                      </button>
+                    )}
                   </div>
                 </li>
               ))}
             </ul>
             <p className="mt-2 text-[12px] text-ink-faint">
-              {segments.length} segment{segments.length === 1 ? "" : "s"} · tap {people.split(",").filter(Boolean).length > 1 ? "someone then " : ""}each segment&rsquo;s voice — Minutes cites these timestamps, so it pays to be accurate.
+              Tap a speaker, then tap each segment&rsquo;s voice; tap the words to fix anything the
+              model misheard — Minutes cites these timestamps, so it pays to be accurate.
             </p>
           </div>
           <div className="pane mt-4 p-5">
