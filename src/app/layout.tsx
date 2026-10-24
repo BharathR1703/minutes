@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Newsreader, Instrument_Sans, Spline_Sans_Mono } from "next/font/google";
 import { TopBar } from "@/components/TopBar";
-import { StoreSync } from "@/components/StoreSync";
 import "./globals.css";
 
 const display = Newsreader({
@@ -39,7 +38,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${display.variable} ${ui.variable} ${time.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-paper text-ink">
-        <StoreSync />
         <TopBar />
         <main className="flex-1">{children}</main>
       </body>

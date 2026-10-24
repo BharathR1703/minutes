@@ -2,9 +2,8 @@
 
 import { MEETING_TEMPLATES } from "@/lib/templates";
 import { upcomingEvents } from "@/lib/data";
-import { accountState, signOut } from "@/lib/store-sync";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 /** Settings: the two decisions Fathom hides — how capture happens, and what a summary looks like. */
 export default function SettingsPage() {
@@ -12,62 +11,12 @@ export default function SettingsPage() {
   const connected = upcoming.length > 0;
   const [mode, setMode] = useState<"free" | "bot">("free");
   const [template, setTemplate] = useState("standard");
-  const [acct, setAcct] = useState<{ email: string | null } | "loading">("loading");
-
-  useEffect(() => {
-    void accountState().then((s) => setAcct({ email: s.email }));
-  }, []);
 
   return (
     <div className="mx-auto max-w-2xl px-4 pb-16 pt-10 sm:px-6">
       <h1 className="font-[family-name:var(--font-display)] text-3xl font-medium tracking-tight">
         Settings
       </h1>
-
-      {/* ── account ──────────────────────────────────────────────────── */}
-      <section className="mt-8" aria-labelledby="account-h">
-        <h2 id="account-h" className="eyebrow mb-3">
-          Account
-        </h2>
-        <div className="pane p-5">
-          {acct === "loading" ? (
-            <p className="text-[13px] text-ink-faint">Checking…</p>
-          ) : acct.email ? (
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="text-[14px]">
-                  Signed in as <span className="font-medium">{acct.email}</span>
-                </p>
-                <p className="mt-1 text-[12.5px] text-ink-soft">
-                  Booked calls and their minutes write through to your own rows in Postgres
-                  (Supabase), isolated by row-level security.
-                </p>
-              </div>
-              <button
-                onClick={() =>
-                  void signOut().then(() => setAcct({ email: null }))
-                }
-                className="shrink-0 rounded-full border border-line px-4 py-2 text-[13.5px] font-medium text-ink-soft hover:border-record hover:text-record"
-              >
-                Sign out
-              </button>
-            </div>
-          ) : (
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="max-w-md text-[13.5px] leading-relaxed text-ink-soft">
-                No account signed in — bookings live in this browser only. Sign in and they
-                attach to your account instead.
-              </p>
-              <Link
-                href="/signin"
-                className="shrink-0 rounded-full bg-ink px-4 py-2 text-[13.5px] font-medium text-paper hover:opacity-90"
-              >
-                Sign in or create one
-              </Link>
-            </div>
-          )}
-        </div>
-      </section>
 
       {/* ── capture mode ─────────────────────────────────────────────── */}
       <section className="mt-8" aria-labelledby="capture-h">

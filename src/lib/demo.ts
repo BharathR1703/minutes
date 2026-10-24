@@ -1,11 +1,10 @@
 import type { Meeting, Upcoming } from "@/lib/model";
 import { extractArtifacts } from "@/lib/extract";
-import { pushRow, deleteRows } from "@/lib/store-sync";
 
 // ── Booked meetings ──────────────────────────────────────────────────────────
 // The app is local-first: bookings and their minutes live in the browser
 // (localStorage, `minutes.demo.v2`) and write through to the user's Postgres
-// row set on Supabase when they're signed in (see store-sync). The seed data
+// row set on Supabase when they're signed in see README. The seed data
 // stays untouched; booked sections below the seeded ones are labeled "booked
 // in this browser".
 //
@@ -98,7 +97,6 @@ export function bookMeeting(spec: DemoSpec): DemoEvent {
     feeds: [],
   };
   saveDemoStore({ ...store, events: [...store.events, ev] });
-  pushRow(ev.id, "event", ev); // write-through for signed-in accounts
   return ev;
 }
 
@@ -115,8 +113,6 @@ export function recordBooking(id: string, feeds?: FeedLine[]): Meeting | undefin
     meetings: [...store.meetings, meeting],
   };
   if (!saveDemoStore(updated)) return undefined;
-  pushRow(ev.id, "event", updatedEvent);
-  pushRow(meeting.id, "meeting", meeting);
   return meeting;
 }
 
@@ -130,7 +126,6 @@ export function clearDemo(): void {
   } catch {
     /* nothing to clear */
   }
-  void deleteRows(); // signed-in users forget their cloud rows too
 }
 
 /* ── meeting composition ────────────────────────────────────────────────────── */

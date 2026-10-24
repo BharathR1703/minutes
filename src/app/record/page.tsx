@@ -2,7 +2,6 @@
 
 import { bookMeeting, recordBooking, getDemoMeeting, type Attendee } from "@/lib/demo";
 import { CaptureSummary } from "@/components/demo/CaptureSummary";
-import { supabase } from "@/lib/db";
 import { fmtDate, fmtTime, mmss } from "@/lib/time";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -16,8 +15,7 @@ import { useEffect, useState } from "react";
  * on captured calls and writes the full report — summary, actions, flagged
  * moments, clips, cited chat, dispatch.
  *
- * The recording itself attaches to the account (Supabase Storage, per-user
- * folder) when signed in.
+ * The recording stays right where it is, in this browser.
  */
 
 type Segment = { sp: number; text: string; t: number };
@@ -125,34 +123,7 @@ export default function RecordPage() {
     });
     const meeting = recordBooking(ev.id, segments.map((s) => ({ sp: s.sp, text: s.text, t: s.t })));
     if (!meeting) return;
-    await attachRecording(file, meeting.id);
     setResultId(meeting.id);
-  }
-
-  // signed-in users keep the recording attached to the meeting
-  async function attachRecording(file: File | null, meetingId: string): Promise<string | null> {
-    if (!file || !supabase) return null;
-    try {
-      const { data } = await supabase.auth.getUser();
-      const uid = data?.user?.id;
-      if (!uid) return null;
-      const path = `${uid}/${Date.now()}-${file.name}`;
-      const { error } = await supabase.storage.from("minutes-audio").upload(path, file, {
-        contentType: file.type || "application/octet-stream",
-      });
-      if (error) return null;
-      await supabase.from("minutes_recordings").insert({
-        user_id: uid,
-        meeting_id: meetingId,
-        file_name: file.name,
-        file_size: file.size,
-        mime: file.type,
-        storage_path: path,
-      });
-      return path;
-    } catch {
-      return null; // storage/buckets not set up — the transcript is saved regardless
-    }
   }
 
   const label = "block text-[12.5px] font-medium mb-1.5";
@@ -168,8 +139,7 @@ export default function RecordPage() {
       <p className="mt-2 max-w-xl text-[14.5px] leading-relaxed text-ink-soft">
         A call you already have on disk works the same as a live one: Minutes transcribes
         {" "}(Whisper runs right here in the browser) and writes the full report — the summary,
-        action items, flagged moments, clips, the cited chat. Nothing leaves this tab; sign in
-        and the file attaches to your account.
+        action items, flagged moments, clips, the cited chat. Nothing leaves this tab.
       </p>
 
       {stage.kind === "idle" && (
