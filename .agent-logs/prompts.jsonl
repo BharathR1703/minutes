@@ -19,3 +19,4 @@
 {"ts":"2026-10-24T09:29:51Z","session":"f6e804a3-1c28-4634-abd5-b0395560dade","prompt":"no need of Account created — but this Supabase project asks for an email confirmation on sign-up. Open the link it just sent, or disable 'Confirm email' in the dashboard to make accounts password-only."}
 {"ts":"2026-10-24T09:33:47Z","session":"f6e804a3-1c28-4634-abd5-b0395560dade","prompt":"account is created but sign in giving the issue"}
 {"ts":"2026-10-24T09:34:38Z","session":"f6e804a3-1c28-4634-abd5-b0395560dade","prompt":"remove the authentication"}
+{"ts":"2026-10-24T09:39:48Z","session":"f6e804a3-1c28-4634-abd5-b0395560dade","prompt":"to connect to google intergration what all you need rather than oauth authentication"}
