@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { upcomingEvents, getMeeting } from "@/lib/data";
 import { LiveCapture } from "@/components/live/LiveCapture";
 import { LocalLiveCapture } from "@/components/demo/LocalLiveCapture";
+import { RealCapture } from "@/components/demo/RealCapture";
 
 export const metadata = { title: "Live capture" };
 
@@ -19,6 +20,7 @@ const LIVE_SOURCE: Record<string, string> = {
 export default async function LivePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (id.startsWith("demo-")) return <LocalLiveCapture id={id} />;
+  if (id.startsWith("real-")) return <RealCapture id={id} />;
   const event = upcomingEvents().find((u) => u.id === id);
   if (!event) notFound();
   const meeting = getMeeting(LIVE_SOURCE[id]);

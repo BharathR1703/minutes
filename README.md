@@ -57,6 +57,18 @@ quote and its citation included), and nothing happens without Approve — the bu
   dispatch draft→approve→toast flow.
 - **Stubbed:** the capture layer — nothing joins Zoom or records system audio. The seed data
   represents what capture would produce, and the UI says so plainly (see the walkthrough).
+- **Real Google Calendar + real Meet calls** (the one integration that isn't simulated):
+  `/book` offers a real Google sign-in (OAuth in `src/app/api/auth/google/*`; the client
+  secret stays in server env, tokens in the consenting browser only). Once connected
+  Minutes lists your **real upcoming events** with their real Meet links ("Arm Minutes" on
+  any of them), and **"Book for real"** creates a real calendar event with a real Google
+  Meet conference link via the Calendar API — Google emails the attendee invitations. The
+  capture of a real call is real too: Minutes listens to the shared Meet **tab audio in the
+  browser** (getDisplayMedia), transcribes it live with the browser's speech engine and a
+  level meter, tags speakers via chips (browser STT can't diarize), and on stop writes the
+  same minutes every call gets. This is the same system-audio path Fathom's desktop app
+  takes on Meet; nothing joins Meet headlessly (Google blocks that for web apps). What is
+  still stubbed: joining others' calls as a headless bot.
 - **Book a call in the app** (`/book`): the booking form arms a capture run like a seeded
   call — run the simulation and a full meeting is generated (transcript, summary, actions,
   highlights, clips, chat, dispatch). Two modes: a **walkthrough script** (the script's

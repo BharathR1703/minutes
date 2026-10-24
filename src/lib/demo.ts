@@ -23,7 +23,7 @@ export const SCRIPTS: { id: ScriptId; name: string; blurb: string }[] = [
 
 /** What was filled in on the booking form. */
 export type Attendee = { name: string; email?: string };
-export type FeedLine = { sp: number | "self"; text: string }; // your own call, in order
+export type FeedLine = { sp: number | "self"; text: string; t?: number }; // your own call, in order; t = real capture seconds
 
 export type DemoSpec = {
   script: ScriptId | "blank"; // "blank" = your own call, fed to the scribe live
@@ -32,6 +32,8 @@ export type DemoSpec = {
   startedAt: string; // ISO, chosen on the form
   captureMode: Upcoming["captureMode"];
   attendees: Attendee[]; // non-self, first is the lead
+  /** set when the booking is a REAL Google Calendar event (real Meet link) */
+  meetLink?: string;
 };
 
 /** One booked call: the form spec plus whether capture has been run. */
@@ -329,7 +331,9 @@ export function composeMeeting(spec: DemoSpec, id: string, feeds: FeedLine[] = [
     sp === "self" ? "you" : `g${Math.min(sp, Math.max(0, attendeeNames.length - 1))}`;
 
   if (spec.script === "blank") {
-    // your own call: the transcript is the feed, artifacts are extracted
+    // your own call: the transcript is the feed, artifacts are extracted.
+    // A real capture (RealCapture) feeds actual seconds in l.t — use them;
+    // typed feeds (OwnCapture) follow the simulation cadence.
     let t = 0;
     const transcript = feeds
       .filter((l) => l.text.trim())
@@ -337,11 +341,13 @@ export function composeMeeting(spec: DemoSpec, id: string, feeds: FeedLine[] = [
         const speaker = resolve(l.sp);
         const words = l.text.trim().split(/\s+/).length;
         const dur = Math.max(1.6, Math.round((words / 2.6) * 10) / 10);
-        const u = { t: Math.round(t), dur, speaker, text: l.text.trim() };
-        t += dur + 0.9;
-        return u;
+        const start = l.t != null ? Math.round(l.t) : Math.round(t);
+        t = (l.t != null ? l.t : t) + dur + 0.9;
+        return { t: start, dur, speaker, text: l.text.trim() };
       });
-    const end = Math.round(t);
+    const end = Math.round(
+      transcript.reduce((max, u) => Math.max(max, u.t + u.dur), 0) || 0,
+    );
     const nameOf = (sid: string) => speakers.find((s) => s.id === sid)?.name ?? sid;
     const artifacts = extractArtifacts(transcript, { idPrefix: id, nameOf });
     const email = [
