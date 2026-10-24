@@ -57,6 +57,10 @@ quote and its citation included), and nothing happens without Approve — the bu
   dispatch draft→approve→toast flow.
 - **Stubbed:** the capture layer — nothing joins Zoom or records system audio. The seed data
   represents what capture would produce, and the UI says so plainly (see the walkthrough).
+- **Book a call in the app** (`/book`): the booking form arms a capture run like a seeded
+  call — run the simulation and a full meeting is generated (transcript, summary, actions,
+  highlights, clips, chat, dispatch). With no database, bookings live in the booking
+  browser's localStorage only and say so in the UI; seed data is untouched.
 - The **AI is mocked**: chat answers, generated clips, and dispatch drafts are retrieval +
   hand-woven text streamed token-by-token — no model call, the code says so in its footnote.
 - The **audio you hear** in playback is a synthesized voice bed (per-speaker pitch), labeled

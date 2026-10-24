@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { allMeetings, getMeeting } from "@/lib/data";
 import { MeetingView } from "@/components/meeting/MeetingView";
+import { LocalMeetingView } from "@/components/demo/LocalMeetingView";
 
 export default async function MeetingPage({
   params,
@@ -15,7 +16,10 @@ export default async function MeetingPage({
   const { id } = await params;
   const { t } = await searchParams;
   const meeting = getMeeting(id);
-  if (!meeting) notFound();
+  if (!meeting) {
+    if (id.startsWith("demo-")) return <LocalMeetingView id={id} />;
+    notFound();
+  }
   const initialTime = t ? Math.max(0, Math.min(meeting.duration, Math.floor(Number(t) || 0))) : 0;
   return <MeetingView meeting={meeting} initialTime={initialTime} />;
 }

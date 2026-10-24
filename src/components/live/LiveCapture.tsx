@@ -17,7 +17,16 @@ const SPEED = 20;
  * speaking graph growing in real time — and lands on the summary Minutes writes
  * when the call ends.
  */
-export function LiveCapture({ event, meeting }: { event: Upcoming; meeting: Meeting }) {
+export function LiveCapture({
+  event,
+  meeting,
+  onDone,
+}: {
+  event: Upcoming;
+  meeting: Meeting;
+  /** fired once when the simulated call ends — where a booked call gets recorded */
+  onDone?: () => void;
+}) {
   const [phase, setPhase] = useState<"armed" | "live" | "done">("armed");
   const [turns, setTurns] = useState(0);
   const [simSec, setSimSec] = useState(0);
@@ -50,6 +59,12 @@ export function LiveCapture({ event, meeting }: { event: Upcoming; meeting: Meet
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
   }, [turns]);
+
+  // the call ended: hand the recording to whoever armed the capture
+  useEffect(() => {
+    if (phase === "done") onDone?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase]);
 
   function start() {
     setPhase("live");

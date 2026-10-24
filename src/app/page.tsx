@@ -2,6 +2,7 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { allMeetings, upcomingEvents } from "@/lib/data";
 import { SpeakingGraph } from "@/components/SpeakingGraph";
+import { DemoArmedSection, DemoRecordedSection } from "@/components/demo/DemoBooked";
 import { dayBucket, fmtDate, fmtTime, hms } from "@/lib/time";
 import type { Meeting, Upcoming } from "@/lib/model";
 
@@ -25,15 +26,25 @@ export default async function MeetingsPage() {
             </span>
           </p>
         </div>
-        <Link
-          href="/settings"
-          className="hidden shrink-0 rounded-full border border-line bg-raised px-4 py-2 text-sm font-medium hover:border-ink-soft sm:block"
-        >
-          How Minutes joins your calls
-        </Link>
+        <div className="flex shrink-0 items-center gap-3">
+          <Link
+            href="/book"
+            className="rounded-full bg-ink px-4 py-2 text-sm font-medium text-paper hover:opacity-90"
+          >
+            Book a meeting
+          </Link>
+          <Link
+            href="/settings"
+            className="hidden rounded-full border border-line bg-raised px-4 py-2 text-sm font-medium hover:border-ink-soft sm:block"
+          >
+            How Minutes joins your calls
+          </Link>
+        </div>
       </div>
 
       <UpcomingSection upcoming={upcoming} />
+      <DemoArmedSection />
+      <DemoRecordedSection />
 
       <section aria-label="Recorded meetings">
         {meetings.map((m) => (
