@@ -69,6 +69,24 @@ quote and its citation included), and nothing happens without Approve — the bu
   same minutes every call gets. This is the same system-audio path Fathom's desktop app
   takes on Meet; nothing joins Meet headlessly (Google blocks that for web apps). What is
   still stubbed: joining others' calls as a headless bot.
+- **Real accounts (Supabase)**: `/signin` is a working sign-up AND sign-in — email + 6-digit
+  code through Supabase Auth (GoTrue) with a password fallback and a Google button (lights up
+  when the provider is enabled on the Supabase project). Sessions live in the browser; when
+  signed in, bookings and captured minutes write through to per-user rows in Postgres
+  (`minutes_rows`, `minutes_recordings` — schema in `scripts/supabase-schema.sql`), protected
+  by row-level security so each account sees only its own rows, and sync back down on any
+  other browser (`src/lib/db.ts`, `src/lib/store-sync.ts`, `src/components/StoreSync.tsx`).
+  Signed out, everything still works locally in localStorage as before — the cloud layer is
+  a mirror, not a dependency.
+- **Recordings → minutes** (`/record`): give Minutes a recording you already have — an mp3,
+  wav, m4a — and it decodes and resamples it **in the browser** and transcribes it with
+  Whisper (transformers.js, ONNX/WebAssembly, ~45 MB model downloaded once — no API key, no
+  server round-trip, audio never leaves the tab). You tag each segment with the person who
+  spoke (browser transcription can't separate voices), and Minutes then runs the same
+  extraction it runs on captured calls: cite-backed summary and bullets, action items,
+  flagged moments — and the whole app (playback, chat, clips, search, dispatch) runs on the
+  result. Signed in, the recording file itself attaches to the account via Supabase Storage
+  (per-user folder). Verified end-to-end with real spoken audio.
 - **Book a call in the app** (`/book`): the booking form arms a capture run like a seeded
   call — run the simulation and a full meeting is generated (transcript, summary, actions,
   highlights, clips, chat, dispatch). Two modes: a **walkthrough script** (the script's

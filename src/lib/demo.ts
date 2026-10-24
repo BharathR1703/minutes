@@ -1,10 +1,13 @@
 import type { Meeting, Upcoming } from "@/lib/model";
 import { extractArtifacts } from "@/lib/extract";
+import { pushRow, deleteRows } from "@/lib/store-sync";
 
 // ── Booked meetings ──────────────────────────────────────────────────────────
-// The app has no database, so calls a person books here live in their browser
-// (localStorage, `minutes.demo.v2`). The seed data stays untouched; booked
-// sections below the seeded ones are labeled "booked in this browser".
+// The app is local-first: bookings and their minutes live in the browser
+// (localStorage, `minutes.demo.v2`) and write through to the user's Postgres
+// row set on Supabase when they're signed in (see store-sync). The seed data
+// stays untouched; booked sections below the seeded ones are labeled "booked
+// in this browser".
 //
 // Two ways to book:
 // - a walkthrough script (guided; the capture produces that script's content),
@@ -89,12 +92,13 @@ export function saveDemoStore(s: DemoStore): boolean {
 export function bookMeeting(spec: DemoSpec): DemoEvent {
   const store = loadDemoStore();
   const ev: DemoEvent = {
-    id: `demo-${Date.now().toString(36)}`,
+    id: `demo-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`,
     spec,
     status: "armed",
     feeds: [],
   };
   saveDemoStore({ ...store, events: [...store.events, ev] });
+  pushRow(ev.id, "event", ev); // write-through for signed-in accounts
   return ev;
 }
 
@@ -105,13 +109,15 @@ export function recordBooking(id: string, feeds?: FeedLine[]): Meeting | undefin
   if (!ev || ev.status === "recorded") return store.meetings.find((m) => m.id === id);
   const lineFeed = feeds ?? ev.feeds;
   const meeting = composeMeeting(ev.spec, ev.id, lineFeed);
+  const updatedEvent = { ...ev, status: "recorded" as const, feeds: lineFeed };
   const updated: DemoStore = {
-    events: store.events.map((e) =>
-      e.id === id ? { ...e, status: "recorded" as const, feeds: lineFeed } : e
-    ),
+    events: store.events.map((e) => (e.id === id ? updatedEvent : e)),
     meetings: [...store.meetings, meeting],
   };
-  return saveDemoStore(updated) ? meeting : undefined;
+  if (!saveDemoStore(updated)) return undefined;
+  pushRow(ev.id, "event", updatedEvent);
+  pushRow(meeting.id, "meeting", meeting);
+  return meeting;
 }
 
 export function getDemoMeeting(id: string): Meeting | undefined {
@@ -124,6 +130,7 @@ export function clearDemo(): void {
   } catch {
     /* nothing to clear */
   }
+  void deleteRows(); // signed-in users forget their cloud rows too
 }
 
 /* ── meeting composition ────────────────────────────────────────────────────── */

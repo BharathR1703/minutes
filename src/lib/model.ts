@@ -53,7 +53,7 @@ export type Summary = {
 export type Meeting = {
   id: string;
   title: string;
-  platform: "Zoom" | "Google Meet" | "Microsoft Teams" | "In person";
+  platform: "Zoom" | "Google Meet" | "Microsoft Teams" | "In person" | "Recording";
   startedAt: string; // ISO
   duration: number; // seconds
   captureMode: "bot" | "bot-free";
@@ -98,7 +98,7 @@ export type Deal = {
 export type Upcoming = {
   id: string;
   title: string;
-  platform: "Zoom" | "Google Meet" | "Microsoft Teams" | "In person";
+  platform: "Zoom" | "Google Meet" | "Microsoft Teams" | "In person" | "Recording";
   startedAt: string;
   attendees: string[]; // names (incl. self)
   captureMode: "bot" | "bot-free"; // how the notetaker will join this one

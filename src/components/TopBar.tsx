@@ -30,6 +30,9 @@ export function TopBar() {
             <Link href="/" className="text-ink-soft hover:text-ink">
               Meetings
             </Link>
+            <Link href="/record" className="text-ink-soft hover:text-ink">
+              Recordings
+            </Link>
             <Link
               href="/search"
               className="hidden text-ink-soft hover:text-ink sm:block"
@@ -46,7 +49,7 @@ export function TopBar() {
             <Link
               href="/settings"
               className="text-ink-soft hover:text-ink"
-              aria-label="Settings"
+              aria-label="Account and settings"
             >
               Settings
             </Link>
